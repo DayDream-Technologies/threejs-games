@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Box, Sphere, Cylinder } from '@react-three/drei';
+import Minesweeper3D from '../../games/minesweeper/Minesweeper3D';
 
-const GameScene = ({ gameId, gameState, setGameState }) => {
+const GameScene = ({ gameId, gameState, setGameState, flagMode }) => {
   const meshRef = useRef();
 
   useFrame((state, delta) => {
@@ -14,6 +15,10 @@ const GameScene = ({ gameId, gameState, setGameState }) => {
 
   const renderGameScene = () => {
     switch (gameId) {
+      case 'minesweeper-3d':
+        return (
+          <Minesweeper3D gameState={gameState} setGameState={setGameState} flagMode={flagMode} />
+        );
       case 'tetris-3d':
         return (
           <group>

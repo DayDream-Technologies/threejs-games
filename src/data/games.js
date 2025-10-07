@@ -65,6 +65,18 @@ export const games = [
     path: '/games/asteroids-3d',
     tags: ['shooter', '3d', 'classic', 'space']
   }
+  ,
+  {
+    id: 'minesweeper-3d',
+    title: '3D Minesweeper',
+    description: 'Clear a 3D grid without detonating bombs. Flag suspects, reveal safe cubes, and flood empty regions.',
+    genre: 'Puzzle',
+    difficulty: 'Medium',
+    playTime: '5-15 min',
+    image: '/images/minesweeper-3d.jpg',
+    path: '/games/minesweeper-3d',
+    tags: ['puzzle', '3d', 'logic', 'minesweeper']
+  }
 ];
 
 export const getGameById = (id) => {

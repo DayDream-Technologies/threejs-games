@@ -105,6 +105,10 @@
   position: relative;
 }
 
+.game-extra-controls {
+  margin-top: var(--spacing-md);
+}
+
 .game-canvas-container::before {
   content: '';
   position: absolute;

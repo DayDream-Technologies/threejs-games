@@ -11,6 +11,7 @@ const GamePage = () => {
   const { gameId } = useParams();
   const [game, setGame] = useState(null);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [flagMode, setFlagMode] = useState(false);
   const [gameState, setGameState] = useState({
     score: 0,
     lives: 3,
@@ -33,6 +34,16 @@ const GamePage = () => {
   const handleCloseInstructions = () => {
     setShowInstructions(false);
   };
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if ((e.key === 'f' || e.key === 'F') && gameId === 'minesweeper-3d') {
+        setFlagMode(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [gameId]);
 
   if (!game) {
     return (
@@ -65,6 +76,12 @@ const GamePage = () => {
               <span className="stat-label">Level</span>
               <span className="stat-value">{gameState.level}</span>
             </div>
+            {gameId === 'minesweeper-3d' && (
+              <div className="stat">
+                <span className="stat-label">Bombs Remaining</span>
+                <span className="stat-value">{gameState.bombsRemaining ?? '-'}</span>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -73,16 +90,26 @@ const GamePage = () => {
         <div className="game-container">
           <div className="game-canvas-container">
             <Canvas
-              camera={{ position: [0, 0, 5], fov: 75 }}
+              camera={{ position: gameId === 'minesweeper-3d' ? [0, 0, 8] : [0, 0, 5], fov: 75 }}
               frameloop="demand"
               gl={{ antialias: true }}
             >
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
-              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} />
-              <OrbitControls enableZoom={false} />
+              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} />
+              <OrbitControls enableZoom={gameId === 'minesweeper-3d'} />
             </Canvas>
           </div>
+          {gameId === 'minesweeper-3d' && (
+            <div className="game-extra-controls">
+              <button 
+                className="instructions-button"
+                onClick={() => setFlagMode(prev => !prev)}
+              >
+                {flagMode ? 'Flag: ON (F)' : 'Flag: OFF (F)'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="game-controls">
@@ -91,7 +118,7 @@ const GamePage = () => {
             onClick={handleStartGame}
             disabled={gameState.isPlaying}
           >
-            {gameState.isPlaying ? 'Playing...' : 'Start Game'}
+            {gameState.isPlaying ? 'Playing...' : 'New Game'}
           </button>
           <button 
             className="instructions-button"

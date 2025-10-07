@@ -87,6 +87,21 @@ const InstructionsPopup = ({ game, onClose, onStart }) => {
           'Watch for asteroid trajectories',
           'Use thrust sparingly'
         ]
+      },
+      'minesweeper-3d': {
+        objective: 'Reveal all safe cubes in a 3D grid without clicking a bomb.',
+        controls: [
+          'Left Click: Reveal cube / flood reveal if zero',
+          'Right Click: Flag/unflag suspected bomb (turns blue)',
+          'Double Click on revealed number: Remove that cube from scene',
+          'Mouse/Wheel: Orbit and zoom camera',
+          'R: Reset game'
+        ],
+        tips: [
+          'Numbers show count of adjacent bombs in 26-neighborhood',
+          'Use flags to track bombs; bombs remaining updates as you flag',
+          'Zoom in/out to inspect deeper layers'
+        ]
       }
     };
 
