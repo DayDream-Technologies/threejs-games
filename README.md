@@ -318,16 +318,44 @@ The project uses CSS variables for consistent theming:
 
 ## 🚀 Deployment
 
+### GitHub Pages (Recommended)
+
+This project is configured for automatic deployment to GitHub Pages.
+
+#### Automatic Deployment (GitHub Actions)
+1. Push your changes to the `main` branch
+2. GitHub Actions will automatically build and deploy your site
+3. Your site will be available at `https://daydream-technologies.github.io/threes-games`
+
+#### Manual Deployment
+```bash
+# Install dependencies (if not already done)
+npm install
+
+# Build the project
+npm run build
+
+# Deploy to GitHub Pages
+npm run deploy
+```
+
+#### GitHub Pages Setup
+1. Go to your repository settings
+2. Navigate to "Pages" section
+3. Set source to "GitHub Actions"
+4. The workflow will automatically deploy on every push to main
+
+**Note**: This project uses HashRouter instead of BrowserRouter for GitHub Pages compatibility. URLs will include a `#` symbol (e.g., `https://daydream-technologies.github.io/threes-games/#/games/minesweeper-3d`).
+
+### Other Deploy Options
+- **Netlify**: Drag and drop the `build` folder
+- **Vercel**: Connect your GitHub repository
+- **Firebase Hosting**: Use Firebase CLI
+
 ### Build for Production
 ```bash
 npm run build
 ```
-
-### Deploy Options
-- **Netlify**: Drag and drop the `build` folder
-- **Vercel**: Connect your GitHub repository
-- **GitHub Pages**: Use `gh-pages` package
-- **Firebase Hosting**: Use Firebase CLI
 
 ## 🤝 Contributing
 
