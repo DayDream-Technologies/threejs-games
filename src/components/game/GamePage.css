@@ -171,6 +171,27 @@
   box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
 }
 
+.hint-button-red {
+  background: linear-gradient(45deg, #ef4444, #dc2626) !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.5) !important;
+  animation: hintRedFlash 0.5s ease-in-out;
+}
+
+@keyframes hintRedFlash {
+  0% { 
+    background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+  }
+  50% { 
+    background: linear-gradient(45deg, #ef4444, #dc2626);
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.8);
+  }
+  100% { 
+    background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+  }
+}
+
 /* Error State */
 .game-page.error {
   display: flex;

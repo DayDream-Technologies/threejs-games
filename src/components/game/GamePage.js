@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -12,6 +12,8 @@ const GamePage = () => {
   const [game, setGame] = useState(null);
   const [showInstructions, setShowInstructions] = useState(true);
   const [flagMode, setFlagMode] = useState(false);
+  const [hintButtonRed, setHintButtonRed] = useState(false);
+  const hintFunctionRef = useRef(null);
   const [gameState, setGameState] = useState({
     score: 0,
     lives: 3,
@@ -33,6 +35,17 @@ const GamePage = () => {
 
   const handleCloseInstructions = () => {
     setShowInstructions(false);
+  };
+
+  const handleHint = () => {
+    if (hintFunctionRef.current && gameState.isPlaying) {
+      const result = hintFunctionRef.current();
+      // If hint function returns false, it means no hints were available
+      if (result === false) {
+        setHintButtonRed(true);
+        setTimeout(() => setHintButtonRed(false), 500); // Flash for 500ms
+      }
+    }
   };
 
   useEffect(() => {
@@ -96,7 +109,7 @@ const GamePage = () => {
             >
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
-              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} />
+              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} />
               <OrbitControls enableZoom={gameId === 'minesweeper-3d'} />
             </Canvas>
           </div>
@@ -107,6 +120,13 @@ const GamePage = () => {
                 onClick={() => setFlagMode(prev => !prev)}
               >
                 {flagMode ? 'Flag: ON (F)' : 'Flag: OFF (F)'}
+              </button>
+              <button 
+                className={`instructions-button ${hintButtonRed ? 'hint-button-red' : ''}`}
+                onClick={handleHint}
+                disabled={!gameState.isPlaying}
+              >
+                💡 Hint
               </button>
             </div>
           )}

@@ -10,7 +10,8 @@ const colors = {
   neutral: '#9ca3af', // gray
   revealed: '#e5e7eb', // light gray
   bomb: '#ef4444', // red (only used on game over reveal)
-  flag: '#3b82f6' // blue
+  flag: '#3b82f6', // blue
+  correctFlag: '#10b981' // green (correctly flagged bombs)
 };
 
 function getNeighbors(x, y, z) {
@@ -82,12 +83,14 @@ function generateBoard() {
   return board;
 }
 
-function Minesweeper3D({ gameState, setGameState, flagMode }) {
+function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef }) {
   const [board, setBoard] = useState(() => generateBoard());
   const [gameOver, setGameOver] = useState(false);
   const [victory, setVictory] = useState(false);
   const isDraggingRef = useRef(false);
   const pointerDownPos = useRef([0, 0]);
+  const rightClickProcessedRef = useRef(false);
+  const hasStartedRef = useRef(false);
   const DRAG_THRESHOLD = 4; // pixels
 
   // center grid around origin with spacing
@@ -141,7 +144,92 @@ function Minesweeper3D({ gameState, setGameState, flagMode }) {
     return true;
   }, []);
 
-  const onPointerDown = useCallback((e) => {
+  const useHint = useCallback(() => {
+    if (gameOver || victory) return;
+    
+    // Find all non-bomb cubes adjacent to revealed cubes
+    const adjacentCubes = [];
+    
+    // First, try to find cubes adjacent to revealed cubes
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let z = 0; z < GRID_SIZE; z++) {
+          const cell = board[x][y][z];
+          
+          if (!cell.bomb && !cell.revealed && !cell.flagged) {
+            // Check if this cube is adjacent to any revealed cube
+            const neighbors = getNeighbors(x, y, z);
+            const hasRevealedNeighbor = neighbors.some(([nx, ny, nz]) => {
+              return board[nx][ny][nz].revealed;
+            });
+            
+            if (hasRevealedNeighbor) {
+              adjacentCubes.push([x, y, z]);
+            }
+          }
+        }
+      }
+    }
+    
+    let hintCubes = adjacentCubes;
+    
+    // If no cubes adjacent to revealed cubes, fall back to outer layer
+    if (adjacentCubes.length === 0) {
+      const outsideCubes = [];
+      for (let x = 0; x < GRID_SIZE; x++) {
+        for (let y = 0; y < GRID_SIZE; y++) {
+          for (let z = 0; z < GRID_SIZE; z++) {
+            const cell = board[x][y][z];
+            // Check if it's on the outside (at least one coordinate is 0 or GRID_SIZE-1)
+            const isOutside = x === 0 || x === GRID_SIZE - 1 || 
+                             y === 0 || y === GRID_SIZE - 1 || 
+                             z === 0 || z === GRID_SIZE - 1;
+            
+            if (isOutside && !cell.bomb && !cell.revealed && !cell.flagged) {
+              outsideCubes.push([x, y, z]);
+            }
+          }
+        }
+      }
+      hintCubes = outsideCubes;
+    }
+    
+    if (hintCubes.length === 0) {
+      return false; // Signal to parent that no hints are available
+    }
+    
+    // Pick a random hint cube
+    const randomIndex = Math.floor(Math.random() * hintCubes.length);
+    const [hintX, hintY, hintZ] = hintCubes[randomIndex];
+    
+    setBoard(prev => {
+      const draft = prev.map(col => col.map(row => row.slice()));
+      const cell = draft[hintX][hintY][hintZ];
+      
+      if (cell.count === 0) {
+        revealZerosFlood(hintX, hintY, hintZ, draft);
+      } else {
+        cell.revealed = true;
+      }
+      
+      if (checkVictory(draft)) {
+        setVictory(true);
+        setGameState(prevGs => ({ ...prevGs, isPlaying: false }));
+      }
+      
+      return draft;
+    });
+    
+  }, [board, gameOver, victory, revealZerosFlood, checkVictory, setGameState]);
+
+  // Store hint function in ref for parent access
+  useEffect(() => {
+    if (hintFunctionRef) {
+      hintFunctionRef.current = useHint;
+    }
+  }, [useHint, hintFunctionRef]);
+
+  const onPointerDown = useCallback((e, x, y, z) => {
     if (e && e.pointer) {
       pointerDownPos.current = [e.pointer.x, e.pointer.y];
     } else if (e && e.clientX != null) {
@@ -161,10 +249,45 @@ function Minesweeper3D({ gameState, setGameState, flagMode }) {
     }
   }, []);
 
+  const onPointerUp = useCallback((e, x, y, z) => {
+    // Pointer up event handler - currently not used but kept for future functionality
+  }, []);
+
   const onLeftClick = useCallback((e, x, y, z) => {
     if (e && e.stopPropagation) e.stopPropagation();
     if (isDraggingRef.current) return; // treat as navigation, ignore click
     if (gameOver || victory) return;
+    
+    // If flag mode is enabled, treat left click as right click (flag toggle)
+    if (flagMode) {
+      setBoard(prev => {
+        // Check if this cell has already been processed in this click
+        if (rightClickProcessedRef.current) {
+          return prev;
+        }
+        
+        rightClickProcessedRef.current = true;
+        
+        const draft = prev.map(col => col.map(row => row.slice()));
+        const cell = draft[x][y][z];
+        
+        if (cell.removed || cell.revealed) {
+          rightClickProcessedRef.current = false;
+          return prev;
+        }
+        
+        cell.flagged = !cell.flagged;
+        return draft;
+      });
+      
+      // Reset the flag after a short delay to allow for the next legitimate click
+      setTimeout(() => {
+        rightClickProcessedRef.current = false;
+      }, 100);
+      return;
+    }
+    
+    // Normal left click behavior (reveal cells)
     setBoard(prev => {
       const draft = prev.map(col => col.map(row => row.slice()));
       const cell = draft[x][y][z];
@@ -190,20 +313,38 @@ function Minesweeper3D({ gameState, setGameState, flagMode }) {
       }
       return draft;
     });
-  }, [gameOver, victory, revealZerosFlood, checkVictory, setGameState]);
+  }, [gameOver, victory, revealZerosFlood, checkVictory, setGameState, flagMode]);
 
   const onRightClick = useCallback((e, x, y, z) => {
     if (e && e.stopPropagation) e.stopPropagation();
     if (e && e.nativeEvent && e.nativeEvent.preventDefault) e.nativeEvent.preventDefault();
     if (isDraggingRef.current) return; // navigation drag, ignore
     if (gameOver || victory) return;
+    
     setBoard(prev => {
+      // Check if this cell has already been processed in this click
+      if (rightClickProcessedRef.current) {
+        return prev;
+      }
+      
+      rightClickProcessedRef.current = true;
+      
       const draft = prev.map(col => col.map(row => row.slice()));
       const cell = draft[x][y][z];
-      if (cell.removed || cell.revealed) return prev;
+      
+      if (cell.removed || cell.revealed) {
+        rightClickProcessedRef.current = false;
+        return prev;
+      }
+      
       cell.flagged = !cell.flagged;
       return draft;
     });
+    
+    // Reset the flag after a short delay to allow for the next legitimate right click
+    setTimeout(() => {
+      rightClickProcessedRef.current = false;
+    }, 100);
   }, [gameOver, victory]);
 
   const onDoubleClick = useCallback((e, x, y, z) => {
@@ -220,14 +361,18 @@ function Minesweeper3D({ gameState, setGameState, flagMode }) {
     });
   }, [gameOver, victory]);
 
-  // reset when game starts again
+  // Auto-start game when component loads and reset when game starts again
   useEffect(() => {
     if (gameState.isPlaying) {
       setBoard(generateBoard());
       setGameOver(false);
       setVictory(false);
+      hasStartedRef.current = true;
+    } else if (!hasStartedRef.current) {
+      // Auto-start the game only on initial component load
+      setGameState(prev => ({ ...prev, isPlaying: true }));
     }
-  }, [gameState.isPlaying]);
+  }, [gameState.isPlaying, setGameState]);
 
   const cubes = [];
   for (let x = 0; x < GRID_SIZE; x++)
@@ -242,6 +387,8 @@ function Minesweeper3D({ gameState, setGameState, flagMode }) {
         if (cell.flagged) color = colors.flag;
         if (cell.revealed && !cell.bomb) color = colors.revealed;
         if (cell.revealed && cell.bomb) color = colors.bomb;
+        // When game is over, correctly flagged bombs should be green
+        if (gameOver && cell.bomb && cell.flagged) color = colors.correctFlag;
         cubes.push({ x, y, z, px, py, pz, color, cell });
       }
 
@@ -253,8 +400,9 @@ function Minesweeper3D({ gameState, setGameState, flagMode }) {
             onClick={(e) => onLeftClick(e, x, y, z)}
             onContextMenu={(e) => onRightClick(e, x, y, z)}
             onDoubleClick={(e) => onDoubleClick(e, x, y, z)}
-            onPointerDown={onPointerDown}
+            onPointerDown={(e) => onPointerDown(e, x, y, z)}
             onPointerMove={onPointerMove}
+            onPointerUp={(e) => onPointerUp(e, x, y, z)}
           >
             <meshStandardMaterial color={color} />
             <Edges scale={1.001} color="#ffffff" threshold={15} />
