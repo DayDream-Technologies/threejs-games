@@ -345,7 +345,7 @@ npm run deploy
 3. Set source to "GitHub Actions"
 4. The workflow will automatically deploy on every push to main
 
-**Note**: This project uses HashRouter instead of BrowserRouter for GitHub Pages compatibility. URLs will include a `#` symbol (e.g., `https://daydream-technologies.github.io/threes-games/#/games/minesweeper-3d`).
+**Note**: This project uses the official GitHub Pages workflow template (`jekyll-gh-pages.yml`) adapted for React apps. It uses HashRouter instead of BrowserRouter for GitHub Pages compatibility. URLs will include a `#` symbol (e.g., `https://daydream-technologies.github.io/threes-games/#/games/minesweeper-3d`).
 
 ### Other Deploy Options
 - **Netlify**: Drag and drop the `build` folder
