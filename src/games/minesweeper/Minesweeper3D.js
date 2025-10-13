@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { useThree } from '@react-three/fiber';
 import { Box, Text, Edges } from '@react-three/drei';
 import { useRef } from 'react';
 

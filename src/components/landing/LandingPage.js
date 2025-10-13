@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { games, searchGames } from '../../data/games';
 import SearchBar from '../shared/SearchBar';
 import GameCard from '../shared/GameCard';
