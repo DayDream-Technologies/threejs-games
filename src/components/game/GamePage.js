@@ -18,7 +18,9 @@ const GamePage = () => {
     score: 0,
     lives: 3,
     level: 1,
-    isPlaying: false
+    isPlaying: false,
+    gameWon: false,
+    gameLost: false
   });
 
   useEffect(() => {
@@ -101,7 +103,7 @@ const GamePage = () => {
 
       <main className="game-main">
         <div className="game-container">
-          <div className="game-canvas-container">
+          <div className={`game-canvas-container ${gameState.gameWon ? 'game-won' : ''} ${gameState.gameLost ? 'game-lost' : ''}`}>
             <Canvas
               camera={{ position: gameId === 'minesweeper-3d' ? [0, 0, 8] : [0, 0, 5], fov: 75 }}
               frameloop="demand"

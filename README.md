@@ -10,6 +10,8 @@ A modern, responsive video game website built with React.js and React Three Fibe
 - **3D Game Scenes**: Interactive Three.js scenes for each game
 - **Performance Optimized**: On-demand rendering and efficient 3D graphics
 - **Modular Architecture**: Easy to add new games and maintain
+- **Game State Management**: Win/lose background effects and game state tracking
+- **Enhanced Controls**: Improved spacing and visual feedback
 
 ## 🚀 Getting Started
 

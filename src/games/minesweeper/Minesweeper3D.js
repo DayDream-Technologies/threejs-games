@@ -213,7 +213,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef }) {
       
       if (checkVictory(draft)) {
         setVictory(true);
-        setGameState(prevGs => ({ ...prevGs, isPlaying: false }));
+        setGameState(prevGs => ({ ...prevGs, isPlaying: false, gameWon: true, gameLost: false }));
       }
       
       return draft;
@@ -298,7 +298,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef }) {
             for (let k = 0; k < GRID_SIZE; k++)
               if (draft[i][j][k].bomb) draft[i][j][k].revealed = true;
         setGameOver(true);
-        setGameState(prevGs => ({ ...prevGs, isPlaying: false }));
+        setGameState(prevGs => ({ ...prevGs, isPlaying: false, gameWon: false, gameLost: true }));
         return draft;
       }
       if (cell.count === 0) {
@@ -308,7 +308,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef }) {
       }
       if (checkVictory(draft)) {
         setVictory(true);
-        setGameState(prevGs => ({ ...prevGs, isPlaying: false }));
+        setGameState(prevGs => ({ ...prevGs, isPlaying: false, gameWon: true, gameLost: false }));
       }
       return draft;
     });
@@ -366,6 +366,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef }) {
       setBoard(generateBoard());
       setGameOver(false);
       setVictory(false);
+      setGameState(prev => ({ ...prev, gameWon: false, gameLost: false }));
       hasStartedRef.current = true;
     } else if (!hasStartedRef.current) {
       // Auto-start the game only on initial component load
