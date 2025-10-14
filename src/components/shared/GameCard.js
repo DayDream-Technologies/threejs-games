@@ -30,10 +30,17 @@ const GameCard = ({ game }) => {
         </div>
         
         <div className="game-actions">
-          <Link to={game.path} className="play-button">
-            <span className="play-text">PLAY NOW</span>
-            <div className="play-arrow">→</div>
-          </Link>
+          {game.external ? (
+            <a href={game.path} target="_blank" rel="noopener noreferrer" className="play-button">
+              <span className="play-text">PLAY NOW</span>
+              <div className="play-arrow">→</div>
+            </a>
+          ) : (
+            <Link to={game.path} className="play-button">
+              <span className="play-text">PLAY NOW</span>
+              <div className="play-arrow">→</div>
+            </Link>
+          )}
         </div>
       </div>
     </div>

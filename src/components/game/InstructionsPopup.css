@@ -268,4 +268,33 @@
   .popup-actions {
     padding: var(--spacing-sm) var(--spacing-md);
   }
+}
+
+/* Stats-specific styles */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 217, 61, 0.3);
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  color: var(--neon-yellow);
+  font-weight: bold;
+  font-size: 1.1em;
 } 

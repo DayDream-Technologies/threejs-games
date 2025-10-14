@@ -76,6 +76,18 @@ export const games = [
     image: '/images/minesweeper-3d.jpg',
     path: '/games/minesweeper-3d',
     tags: ['puzzle', '3d', 'logic', 'minesweeper']
+  },
+  {
+    id: 'rubiks-cube',
+    title: 'Rubik\'s Cube',
+    description: 'Solve the classic 3x3x3 Rubik\'s Cube puzzle. Rotate faces to match colors and complete the cube.',
+    genre: 'Puzzle',
+    difficulty: 'Hard',
+    playTime: '10-30 min',
+    image: '/images/rubiks-cube.jpg',
+    path: 'https://daydream-technologies.github.io/Rubiks-cube-site/model.html',
+    tags: ['puzzle', '3d', 'classic', 'rubiks', 'logic'],
+    external: true
   }
 ];
 
