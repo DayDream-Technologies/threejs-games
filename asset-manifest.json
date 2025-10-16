@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/threes-games/static/css/main.7c2f01f4.css",
+    "main.js": "/threes-games/static/js/main.ab0e9c19.js",
+    "static/js/453.16b3556c.chunk.js": "/threes-games/static/js/453.16b3556c.chunk.js",
+    "index.html": "/threes-games/index.html",
+    "main.7c2f01f4.css.map": "/threes-games/static/css/main.7c2f01f4.css.map",
+    "main.ab0e9c19.js.map": "/threes-games/static/js/main.ab0e9c19.js.map",
+    "453.16b3556c.chunk.js.map": "/threes-games/static/js/453.16b3556c.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7c2f01f4.css",
+    "static/js/main.ab0e9c19.js"
+  ]
+}
