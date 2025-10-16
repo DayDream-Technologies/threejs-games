@@ -14,10 +14,11 @@ const GamePage = () => {
   const [flagMode, setFlagMode] = useState(false);
   const [hintButtonRed, setHintButtonRed] = useState(false);
   const hintFunctionRef = useRef(null);
+  const [difficulty, setDifficulty] = useState('Easy');
   const [gameState, setGameState] = useState({
     score: 0,
-    lives: 3,
-    level: 1,
+    lives: 1,
+    level: 'Easy',
     isPlaying: false,
     gameWon: false,
     gameLost: false
@@ -37,6 +38,24 @@ const GamePage = () => {
 
   const handleCloseInstructions = () => {
     setShowInstructions(false);
+  };
+
+  const handleDifficultyChange = (newDifficulty) => {
+    setDifficulty(newDifficulty);
+    setGameState(prev => ({ ...prev, level: newDifficulty }));
+    // Start a new game when difficulty changes
+    setGameState(prev => ({ ...prev, isPlaying: true }));
+  };
+
+  const getCameraPosition = (gameId, difficulty) => {
+    if (gameId !== 'minesweeper-3d') return [0, 0, 5];
+    
+    switch (difficulty) {
+      case 'Easy': return [0, 0, 8];    // 5x5x5 grid
+      case 'Medium': return [0, 0, 12];  // 7x7x7 grid - zoom out more
+      case 'Hard': return [0, 0, 16];     // 9x9x9 grid - zoom out even more
+      default: return [0, 0, 8];
+    }
   };
 
   const handleHint = () => {
@@ -105,18 +124,31 @@ const GamePage = () => {
         <div className="game-container">
           <div className={`game-canvas-container ${gameState.gameWon ? 'game-won' : ''} ${gameState.gameLost ? 'game-lost' : ''}`}>
             <Canvas
-              camera={{ position: gameId === 'minesweeper-3d' ? [0, 0, 8] : [0, 0, 5], fov: 75 }}
+              camera={{ position: getCameraPosition(gameId, difficulty), fov: 75 }}
               frameloop="demand"
               gl={{ antialias: true }}
             >
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
-              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} />
+              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} difficulty={difficulty} />
               <OrbitControls enableZoom={gameId === 'minesweeper-3d'} />
             </Canvas>
           </div>
           {gameId === 'minesweeper-3d' && (
             <div className="game-extra-controls">
+              <div className="difficulty-control">
+                <label htmlFor="difficulty-select" className="difficulty-label">Difficulty:</label>
+                <select 
+                  id="difficulty-select"
+                  value={difficulty}
+                  onChange={(e) => handleDifficultyChange(e.target.value)}
+                  className="difficulty-select"
+                >
+                  <option value="Easy">Easy (5×5×5)</option>
+                  <option value="Medium">Medium (7×7×7)</option>
+                  <option value="Hard">Hard (9×9×9)</option>
+                </select>
+              </div>
               <button 
                 className="instructions-button"
                 onClick={() => setFlagMode(prev => !prev)}

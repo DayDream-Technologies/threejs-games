@@ -107,7 +107,49 @@
 
 .game-extra-controls {
   margin-top: var(--spacing-md);
+  display: flex;
   gap: var(--spacing-lg);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.difficulty-control {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.difficulty-label {
+  font-size: 0.9rem;
+  color: var(--light-text);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.difficulty-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: var(--dark-bg);
+  border: 2px solid var(--neon-cyan);
+  color: var(--light-text);
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.difficulty-select:hover {
+  border-color: var(--neon-yellow);
+  box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+.difficulty-select:focus {
+  outline: none;
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 15px rgba(255, 107, 157, 0.4);
 }
 
 .game-canvas-container::before {
