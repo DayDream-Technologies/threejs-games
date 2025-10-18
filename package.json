@@ -1,8 +1,8 @@
 {
-  "name": "threes-games",
+  "name": "threejs-games",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://daydream-technologies.github.io/threes-games",
+  "homepage": "https://daydream-technologies.github.io/threejs-games",
   "dependencies": {
     "@react-three/drei": "^10.6.1",
     "@react-three/fiber": "^9.3.0",

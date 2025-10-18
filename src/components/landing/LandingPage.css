@@ -125,6 +125,19 @@
   font-size: 0.9rem;
 }
 
+.landing-footer a {
+  color: var(--neon-cyan);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 5px var(--neon-cyan);
+}
+
+.landing-footer a:hover {
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px var(--neon-yellow);
+  transform: translateY(-1px);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .landing-header {

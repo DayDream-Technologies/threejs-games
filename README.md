@@ -25,7 +25,7 @@ A modern, responsive video game website built with React.js and React Three Fibe
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd threes-games
+cd threejs-games
 ```
 
 2. Install dependencies:
@@ -327,7 +327,7 @@ This project is configured for automatic deployment to GitHub Pages.
 #### Automatic Deployment (GitHub Actions)
 1. Push your changes to the `main` branch
 2. GitHub Actions will automatically build and deploy your site
-3. Your site will be available at `https://daydream-technologies.github.io/threes-games`
+3. Your site will be available at `https://daydream-technologies.github.io/threejs-games`
 
 #### Manual Deployment
 ```bash
@@ -347,7 +347,7 @@ npm run deploy
 3. Set source to "GitHub Actions"
 4. The workflow will automatically deploy on every push to main
 
-**Note**: This project uses the official GitHub Pages workflow template (`jekyll-gh-pages.yml`) adapted for React apps. It uses HashRouter instead of BrowserRouter for GitHub Pages compatibility. URLs will include a `#` symbol (e.g., `https://daydream-technologies.github.io/threes-games/#/games/minesweeper-3d`).
+**Note**: This project uses the official GitHub Pages workflow template (`jekyll-gh-pages.yml`) adapted for React apps. It uses HashRouter instead of BrowserRouter for GitHub Pages compatibility. URLs will include a `#` symbol (e.g., `https://daydream-technologies.github.io/threejs-games/#/games/minesweeper-3d`).
 
 ### Other Deploy Options
 - **Netlify**: Drag and drop the `build` folder

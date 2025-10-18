@@ -30,16 +30,23 @@ const GameCard = ({ game }) => {
         </div>
         
         <div className="game-actions">
-          {game.external ? (
-            <a href={game.path} target="_blank" rel="noopener noreferrer" className="play-button">
-              <span className="play-text">PLAY NOW</span>
-              <div className="play-arrow">→</div>
-            </a>
+          {game.id === 'minesweeper-3d' || game.id === 'rubiks-cube' ? (
+            game.external ? (
+              <a href={game.path} target="_blank" rel="noopener noreferrer" className="play-button">
+                <span className="play-text">PLAY NOW</span>
+                <div className="play-arrow">→</div>
+              </a>
+            ) : (
+              <Link to={game.path} className="play-button">
+                <span className="play-text">PLAY NOW</span>
+                <div className="play-arrow">→</div>
+              </Link>
+            )
           ) : (
-            <Link to={game.path} className="play-button">
-              <span className="play-text">PLAY NOW</span>
-              <div className="play-arrow">→</div>
-            </Link>
+            <div className="coming-soon-button">
+              <span className="coming-soon-text">COMING SOON</span>
+              <div className="coming-soon-icon">⏳</div>
+            </div>
           )}
         </div>
       </div>

@@ -8,7 +8,8 @@ export const games = [
     playTime: '5-15 min',
     image: '/images/tetris-3d.jpg',
     path: '/games/tetris-3d',
-    tags: ['puzzle', '3d', 'classic', 'strategy']
+    tags: ['puzzle', '3d', 'classic', 'strategy'],
+    published: false
   },
   {
     id: 'snake-3d',
@@ -19,7 +20,8 @@ export const games = [
     playTime: '3-10 min',
     image: '/images/snake-3d.jpg',
     path: '/games/snake-3d',
-    tags: ['arcade', '3d', 'classic', 'casual']
+    tags: ['arcade', '3d', 'classic', 'casual'],
+    published: false
   },
   {
     id: 'pong-3d',
@@ -30,7 +32,8 @@ export const games = [
     playTime: '2-8 min',
     image: '/images/pong-3d.jpg',
     path: '/games/pong-3d',
-    tags: ['sports', '3d', 'classic', 'competitive']
+    tags: ['sports', '3d', 'classic', 'competitive'],
+    published: false
   },
   {
     id: 'breakout-3d',
@@ -41,7 +44,8 @@ export const games = [
     playTime: '4-12 min',
     image: '/images/breakout-3d.jpg',
     path: '/games/breakout-3d',
-    tags: ['arcade', '3d', 'classic', 'action']
+    tags: ['arcade', '3d', 'classic', 'action'],
+    published: false
   },
   {
     id: 'pacman-3d',
@@ -52,7 +56,8 @@ export const games = [
     playTime: '5-15 min',
     image: '/images/pacman-3d.jpg',
     path: '/games/pacman-3d',
-    tags: ['arcade', '3d', 'classic', 'maze']
+    tags: ['arcade', '3d', 'classic', 'maze'],
+    published: false
   },
   {
     id: 'asteroids-3d',
@@ -63,7 +68,8 @@ export const games = [
     playTime: '3-10 min',
     image: '/images/asteroids-3d.jpg',
     path: '/games/asteroids-3d',
-    tags: ['shooter', '3d', 'classic', 'space']
+    tags: ['shooter', '3d', 'classic', 'space'],
+    published: false
   }
   ,
   {
@@ -75,7 +81,8 @@ export const games = [
     playTime: '5-15 min',
     image: '/images/minesweeper-3d.jpg',
     path: '/games/minesweeper-3d',
-    tags: ['puzzle', '3d', 'logic', 'minesweeper']
+    tags: ['puzzle', '3d', 'logic', 'minesweeper'],
+    published: true
   },
   {
     id: 'rubiks-cube',
@@ -87,7 +94,8 @@ export const games = [
     image: '/images/rubiks-cube.jpg',
     path: 'https://daydream-technologies.github.io/Rubiks-cube-site/model.html',
     tags: ['puzzle', '3d', 'classic', 'rubiks', 'logic'],
-    external: true
+    external: true,
+    published: true
   }
 ];
 

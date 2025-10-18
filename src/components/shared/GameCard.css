@@ -196,6 +196,42 @@
   transform: translateX(4px);
 }
 
+.coming-soon-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: linear-gradient(45deg, #6b7280, #9ca3af);
+  color: var(--light-text);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-weight: bold;
+  font-size: 0.9rem;
+  box-shadow: 0 0 15px rgba(107, 114, 128, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: not-allowed;
+  opacity: 0.7;
+  border: 2px solid #6b7280;
+}
+
+.coming-soon-text {
+  font-family: var(--font-display);
+}
+
+.coming-soon-icon {
+  font-size: 1.2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .game-card-inner {
@@ -232,6 +268,11 @@
   }
   
   .play-button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.8rem;
+  }
+  
+  .coming-soon-button {
     padding: var(--spacing-xs) var(--spacing-md);
     font-size: 0.8rem;
   }
