@@ -64,7 +64,7 @@ const LandingPage = () => {
       </main>
 
       <footer className="landing-footer">
-        <p>&copy; 2024 <a href="https://daydreamtechnologies.net" target="_blank" rel="noopener noreferrer">DayDream Technologies</a>. All rights reserved. Classic games, modern experience.</p>
+        <p>&copy; {new Date().getFullYear()} <a href="https://daydreamtechnologies.net" target="_blank" rel="noopener noreferrer">DayDream Technologies</a>. All rights reserved. Classic games, modern experience.</p>
       </footer>
     </div>
   );
