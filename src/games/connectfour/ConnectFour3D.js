@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, Edges } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import * as THREE from 'three';
 
 const spacing = 1.0;
 
@@ -136,7 +134,6 @@ function ConnectFour3D({ gameState, setGameState, showOnlyBlue, showOnlyRed, sho
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const [winningPieces, setWinningPieces] = useState([]);
-  const { camera } = useThree();
   const hasGameStartedRef = useRef(false);
 
   const previousPlayingRef = useRef(false);
@@ -248,12 +245,15 @@ function ConnectFour3D({ gameState, setGameState, showOnlyBlue, showOnlyRed, sho
         case ' ':
           handlePlacePiece();
           break;
+        default:
+          // Other keys are ignored
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameOver, handlePlacePiece]);
+  }, [gameOver, handlePlacePiece, gridSize]);
 
   const handleColumnClick = useCallback((column, depth) => {
     if (gameOver) return;
@@ -306,10 +306,6 @@ function ConnectFour3D({ gameState, setGameState, showOnlyBlue, showOnlyRed, sho
             const px = c * spacing - offset;
             const py = h * spacing - offset;
             const pz = d * spacing - offset;
-            
-            const isWinningPiece = winningPieces.some(([cx, cy, cz]) => 
-              cx === c && cy === h && cz === d
-            );
             
             // Keep original color for winning pieces
             let color;
