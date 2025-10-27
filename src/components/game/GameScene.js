@@ -2,8 +2,9 @@ import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Box, Sphere, Cylinder } from '@react-three/drei';
 import Minesweeper3D from '../../games/minesweeper/Minesweeper3D';
+import ConnectFour3D from '../../games/connectfour/ConnectFour3D';
 
-const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef, difficulty }) => {
+const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef, difficulty, showOnlyBlue, showOnlyRed, showOnlyYellow, showOnlyGreen, showOnlyOrange, showOnlyPink, showOnlyWhite, showOnlyBlack, showGrid, numPlayers, boardSize }) => {
   const meshRef = useRef();
 
   useFrame((state, delta) => {
@@ -18,6 +19,10 @@ const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef,
       case 'minesweeper-3d':
         return (
           <Minesweeper3D gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} difficulty={difficulty} />
+        );
+      case 'connectfour-3d':
+        return (
+          <ConnectFour3D gameState={gameState} setGameState={setGameState} showOnlyBlue={showOnlyBlue} showOnlyRed={showOnlyRed} showOnlyYellow={showOnlyYellow} showOnlyGreen={showOnlyGreen} showOnlyOrange={showOnlyOrange} showOnlyPink={showOnlyPink} showOnlyWhite={showOnlyWhite} showOnlyBlack={showOnlyBlack} showGrid={showGrid} numPlayers={numPlayers} boardSize={boardSize} />
         );
       case 'tetris-3d':
         return (

@@ -96,6 +96,18 @@ export const games = [
     tags: ['puzzle', '3d', 'classic', 'rubiks', 'logic'],
     external: true,
     published: true
+  },
+  {
+    id: 'connectfour-3d',
+    title: '3D Connect Four',
+    description: 'Drop pieces in a 3D grid to get four in a row! Play vertically, horizontally, or diagonally in three dimensions.',
+    genre: 'Strategy',
+    difficulty: 'Medium',
+    playTime: '3-10 min',
+    image: '/images/connectfour-3d.jpg',
+    path: '/games/connectfour-3d',
+    tags: ['strategy', '3d', 'classic', 'two-player', 'connect-four'],
+    published: true
   }
 ];
 

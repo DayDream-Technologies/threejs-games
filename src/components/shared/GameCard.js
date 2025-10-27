@@ -30,7 +30,7 @@ const GameCard = ({ game }) => {
         </div>
         
         <div className="game-actions">
-          {game.id === 'minesweeper-3d' || game.id === 'rubiks-cube' ? (
+          {game.id === 'minesweeper-3d' || game.id === 'rubiks-cube' || game.id === 'connectfour-3d' ? (
             game.external ? (
               <a href={game.path} target="_blank" rel="noopener noreferrer" className="play-button">
                 <span className="play-text">PLAY NOW</span>
