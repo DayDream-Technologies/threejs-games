@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/threes-games/static/css/main.7c2f01f4.css",
-    "main.js": "/threes-games/static/js/main.ab0e9c19.js",
-    "static/js/453.16b3556c.chunk.js": "/threes-games/static/js/453.16b3556c.chunk.js",
-    "index.html": "/threes-games/index.html",
-    "main.7c2f01f4.css.map": "/threes-games/static/css/main.7c2f01f4.css.map",
-    "main.ab0e9c19.js.map": "/threes-games/static/js/main.ab0e9c19.js.map",
-    "453.16b3556c.chunk.js.map": "/threes-games/static/js/453.16b3556c.chunk.js.map"
+    "main.css": "/threejs-games/static/css/main.7c9a7050.css",
+    "main.js": "/threejs-games/static/js/main.6a20a110.js",
+    "static/js/453.16afcda7.chunk.js": "/threejs-games/static/js/453.16afcda7.chunk.js",
+    "index.html": "/threejs-games/index.html",
+    "main.7c9a7050.css.map": "/threejs-games/static/css/main.7c9a7050.css.map",
+    "main.6a20a110.js.map": "/threejs-games/static/js/main.6a20a110.js.map",
+    "453.16afcda7.chunk.js.map": "/threejs-games/static/js/453.16afcda7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.7c2f01f4.css",
-    "static/js/main.ab0e9c19.js"
+    "static/css/main.7c9a7050.css",
+    "static/js/main.6a20a110.js"
   ]
 }
