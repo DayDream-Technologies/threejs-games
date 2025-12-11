@@ -14,6 +14,7 @@ const GamePage = () => {
   const [flagMode, setFlagMode] = useState(false);
   const [hintButtonRed, setHintButtonRed] = useState(false);
   const hintFunctionRef = useRef(null);
+  const checkFunctionRef = useRef(null);
   const [difficulty, setDifficulty] = useState('Easy');
   const [showOnlyBlue, setShowOnlyBlue] = useState(false);
   const [showOnlyRed, setShowOnlyRed] = useState(false);
@@ -25,7 +26,7 @@ const GamePage = () => {
   const [showOnlyBlack, setShowOnlyBlack] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [numPlayers, setNumPlayers] = useState(2);
-  const [boardSize, setBoardSize] = useState(7);
+  const [boardSize, setBoardSize] = useState(5);
   const [gameState, setGameState] = useState({
     score: 0,
     lives: 1,
@@ -59,7 +60,7 @@ const GamePage = () => {
   };
 
   const getCameraPosition = (gameId, difficulty) => {
-    if (gameId === 'connectfour-3d') {
+    if (gameId === 'connectfour-3d' || gameId === 'crossword-3d') {
       // Adjust camera based on board size
       switch(boardSize) {
         case 5: return [0, 0, 8];
@@ -311,8 +312,8 @@ const GamePage = () => {
             >
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
-              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} difficulty={difficulty} showOnlyBlue={showOnlyBlue} showOnlyRed={showOnlyRed} showOnlyYellow={showOnlyYellow} showOnlyGreen={showOnlyGreen} showOnlyOrange={showOnlyOrange} showOnlyPink={showOnlyPink} showOnlyWhite={showOnlyWhite} showOnlyBlack={showOnlyBlack} showGrid={showGrid} numPlayers={numPlayers} boardSize={boardSize} />
-              <OrbitControls enableZoom={gameId === 'minesweeper-3d' || gameId === 'connectfour-3d'} />
+              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} checkFunctionRef={checkFunctionRef} difficulty={difficulty} showOnlyBlue={showOnlyBlue} showOnlyRed={showOnlyRed} showOnlyYellow={showOnlyYellow} showOnlyGreen={showOnlyGreen} showOnlyOrange={showOnlyOrange} showOnlyPink={showOnlyPink} showOnlyWhite={showOnlyWhite} showOnlyBlack={showOnlyBlack} showGrid={showGrid} numPlayers={numPlayers} boardSize={boardSize} />
+              <OrbitControls enableZoom={gameId === 'minesweeper-3d' || gameId === 'connectfour-3d' || gameId === 'crossword-3d'} />
             </Canvas>
           </div>
           {gameId === 'minesweeper-3d' && (
@@ -571,6 +572,55 @@ const GamePage = () => {
                   {showOnlyBlack ? 'Show Black: ON (K)' : 'Show Black: OFF (K)'}
                 </button>
               )}
+            </div>
+          )}
+          {gameId === 'crossword-3d' && (
+            <div className="game-extra-controls">
+              <div className="difficulty-control">
+                <label htmlFor="board-size-select" className="difficulty-label">Board Size:</label>
+                <select 
+                  id="board-size-select"
+                  value={boardSize}
+                  onChange={(e) => {
+                    setBoardSize(Number(e.target.value));
+                    // Reset the game by temporarily stopping and restarting
+                    setGameState(prev => ({ ...prev, isPlaying: false }));
+                    setGameState(prev => ({ ...prev, isPlaying: true }));
+                  }}
+                  className="difficulty-select"
+                  style={{ minWidth: '100px' }}
+                >
+                  <option value={5}>5×5×5</option>
+                  <option value={7}>7×7×7</option>
+                  <option value={9}>9×9×9</option>
+                </select>
+              </div>
+              <button 
+                className={`instructions-button ${hintButtonRed ? 'hint-button-red' : ''}`}
+                onClick={() => {
+                  if (hintFunctionRef.current && gameState.isPlaying) {
+                    const result = hintFunctionRef.current();
+                    if (result === false) {
+                      setHintButtonRed(true);
+                      setTimeout(() => setHintButtonRed(false), 500);
+                    }
+                  }
+                }}
+                disabled={!gameState.isPlaying}
+              >
+                💡 Hint
+              </button>
+              <button 
+                className="instructions-button"
+                onClick={() => {
+                  if (checkFunctionRef.current && gameState.isPlaying) {
+                    checkFunctionRef.current();
+                  }
+                }}
+                disabled={!gameState.isPlaying}
+              >
+                ✓ Check
+              </button>
             </div>
           )}
         </div>

@@ -108,6 +108,18 @@ export const games = [
     path: '/games/connectfour-3d',
     tags: ['strategy', '3d', 'classic', 'two-player', 'connect-four'],
     published: true
+  },
+  {
+    id: 'crossword-3d',
+    title: '3D Crossword',
+    description: 'Solve crossword puzzles in three dimensions! Place words across, down, and through a 3D grid of cubes.',
+    genre: 'Puzzle',
+    difficulty: 'Medium',
+    playTime: '10-30 min',
+    image: '/images/crossword-3d.jpg',
+    path: '/games/crossword-3d',
+    tags: ['puzzle', '3d', 'word', 'crossword', 'strategy'],
+    published: true
   }
 ];
 
