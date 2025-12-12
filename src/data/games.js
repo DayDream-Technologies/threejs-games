@@ -120,18 +120,6 @@ export const games = [
     path: '/games/crossword-3d',
     tags: ['puzzle', '3d', 'word', 'crossword', 'strategy'],
     published: true
-  },
-  {
-    id: 'plinko-3d',
-    title: '3D Plinko',
-    description: 'Experience the classic arcade game in stunning 3D! Drop balls down a pegboard and watch them cascade through pegs into collection boxes below.',
-    genre: 'Arcade',
-    difficulty: 'Easy',
-    playTime: '5-15 min',
-    image: '/images/plinko-3d.jpg',
-    path: '/games/plinko-3d',
-    tags: ['arcade', '3d', 'casual', 'physics', 'plinko'],
-    published: true
   }
 ];
 

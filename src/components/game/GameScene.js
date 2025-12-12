@@ -4,7 +4,6 @@ import { Box, Sphere, Cylinder } from '@react-three/drei';
 import Minesweeper3D from '../../games/minesweeper/Minesweeper3D';
 import ConnectFour3D from '../../games/connectfour/ConnectFour3D';
 import Crossword3D from '../../games/crossword3d/Crossword3D';
-import Plinko3D from '../../games/plinko/Plinko3D';
 
 const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef, checkFunctionRef, difficulty, showOnlyBlue, showOnlyRed, showOnlyYellow, showOnlyGreen, showOnlyOrange, showOnlyPink, showOnlyWhite, showOnlyBlack, showGrid, numPlayers, boardSize }) => {
   const meshRef = useRef();
@@ -29,10 +28,6 @@ const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef,
       case 'crossword-3d':
         return (
           <Crossword3D gameState={gameState} setGameState={setGameState} showGrid={showGrid} boardSize={boardSize} hintFunctionRef={hintFunctionRef} checkFunctionRef={checkFunctionRef} />
-        );
-      case 'plinko-3d':
-        return (
-          <Plinko3D gameState={gameState} setGameState={setGameState} />
         );
       case 'tetris-3d':
         return (
