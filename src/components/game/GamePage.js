@@ -69,6 +69,7 @@ const GamePage = () => {
         default: return [0, 0, 12];
       }
     }
+    if (gameId === 'plinko-3d') return [0, 0, 12];
     if (gameId !== 'minesweeper-3d') return [0, 0, 5];
     
     switch (difficulty) {

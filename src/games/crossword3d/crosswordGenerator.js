@@ -11,12 +11,8 @@
  * - Adapted for 3D space with support for axis-aligned word placements only
  */
 
-// Sample word lists for different difficulty levels
-const WORD_LISTS = {
-  easy: ['CAT', 'DOG', 'BAT', 'RAT', 'HAT', 'MAT', 'SAT', 'PAT', 'BAG', 'TAG', 'LAG', 'SAG', 'BED', 'RED', 'LED', 'FED', 'BIG', 'DIG', 'FIG', 'JIG', 'BOG', 'DOG', 'FOG', 'LOG', 'CAB', 'DAB', 'LAB', 'TAB', 'CAN', 'DAN', 'FAN', 'MAN', 'CAP', 'GAP', 'LAP', 'MAP', 'CAR', 'BAR', 'FAR', 'TAR', 'COT', 'DOT', 'HOT', 'LOT', 'CUB', 'HUB', 'PUB', 'RUB', 'CUD', 'BUD', 'MUD', 'CUP', 'PUP', 'SUP', 'CUT', 'BUT', 'HUT', 'NUT'],
-  medium: ['HELLO', 'WORLD', 'PUZZLE', 'SOLVE', 'GAME', 'PLAY', 'FUN', 'CODE', 'JAVA', 'REACT', 'THREE', 'BLOCK', 'STACK', 'QUEUE', 'ARRAY', 'OBJECT', 'CLASS', 'METHOD', 'FUNCTION', 'VARIABLE', 'STRING', 'NUMBER', 'BOOLEAN', 'RETURN', 'IMPORT', 'EXPORT', 'MODULE', 'PACKAGE', 'SYSTEM', 'CONSOLE', 'WINDOW', 'DOCUMENT', 'ELEMENT', 'EVENT', 'HANDLER', 'CALLBACK', 'PROMISE', 'ASYNC', 'AWAIT', 'FETCH', 'REQUEST', 'RESPONSE', 'HEADER', 'BODY', 'STATUS', 'ERROR', 'SUCCESS', 'FAILURE', 'RESULT', 'OUTPUT'],
-  hard: ['JAVASCRIPT', 'REACT', 'THREEJS', 'PUZZLE', 'CROSSWORD', 'GENERATOR', 'ALGORITHM', 'SOLUTION', 'FUNCTIONAL', 'PROGRAMMING', 'DEVELOPMENT', 'FRAMEWORK', 'LIBRARY', 'COMPONENT', 'PROPERTY', 'ATTRIBUTE', 'SELECTOR', 'QUERY', 'MANIPULATION', 'ANIMATION', 'TRANSITION', 'TRANSFORM', 'ROTATION', 'TRANSLATION', 'SCALING', 'PERSPECTIVE', 'PROJECTION', 'MATRIX', 'VECTOR', 'GEOMETRY', 'MATERIAL', 'TEXTURE', 'LIGHTING', 'SHADING', 'RENDERING', 'CANVAS', 'CONTEXT', 'BUFFER', 'VERTEX', 'FRAGMENT', 'SHADER', 'UNIFORM', 'VARYING', 'ATTRIBUTE', 'TEXTURE', 'SAMPLER', 'BUFFER', 'ARRAY', 'OBJECT', 'INSTANCE']
-};
+// Import word lists with definitions
+import { WORD_LISTS, getWordDefinition } from './wordLists.js';
 
 // 3D directions: [dx, dy, dz] for word placement
 // Only axis-aligned directions (no diagonals)
