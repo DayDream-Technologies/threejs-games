@@ -12,7 +12,7 @@
  */
 
 // Import word lists with definitions
-import { WORD_LISTS, getWordDefinition } from './wordLists.js';
+import { WORD_LISTS } from './wordLists.js';
 
 // 3D directions: [dx, dy, dz] for word placement
 // Only axis-aligned directions (no diagonals)
@@ -303,7 +303,7 @@ export function generateCrossword3D(gridSize = 9, difficulty = 'medium', maxAtte
     
     // Pick a random intersection
     const intersection = intersections[Math.floor(Math.random() * intersections.length)];
-    const { x, y, z, letter, letterIndex } = intersection;
+    const { x, y, z, letter } = intersection;
     
     // Find words that contain this letter
     const availableWords = findWordsWithLetter(words, letter, Array.from(usedWords));

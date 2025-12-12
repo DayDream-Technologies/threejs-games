@@ -39,7 +39,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
   const [selectedCell, setSelectedCell] = useState(null); // [x, y, z] or null
   const [selectedWordId, setSelectedWordId] = useState(null); // Which word is currently selected
   const [selectedWordPositions, setSelectedWordPositions] = useState([]); // Positions of cells in selected word
-  const [typingBuffer, setTypingBuffer] = useState(''); // Buffer for sequential typing
   const typingBufferRef = useRef(''); // Ref to track typing buffer for rapid typing
   const [crosswordData, setCrosswordData] = useState(null); // Stores word positions
   
@@ -78,7 +77,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
       setSelectedCell(null);
       setSelectedWordId(null);
       setSelectedWordPositions([]);
-      setTypingBuffer('');
       typingBufferRef.current = '';
       setCellStates(createEmptyCellStates(gridSize));
       setGameState({
@@ -96,7 +94,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
       setSelectedCell(null);
       setSelectedWordId(null);
       setSelectedWordPositions([]);
-      setTypingBuffer('');
       typingBufferRef.current = '';
       setCellStates(createEmptyCellStates(gridSize));
       setGameState({
@@ -159,7 +156,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
         setSelectedWordId(wordId);
         const positions = getWordPositions(wordId);
         setSelectedWordPositions(positions);
-        setTypingBuffer(''); // Clear typing buffer on new selection
         typingBufferRef.current = ''; // Clear ref buffer too
       }
     }
@@ -212,7 +208,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
     // Pick a random unfilled cell
     const randomIndex = Math.floor(Math.random() * unfilledCells.length);
     const [x, y, z] = unfilledCells[randomIndex];
-    const cell = board[x][y][z];
     
     // Reveal the correct letter
     setBoard(prev => {
@@ -326,7 +321,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
         
         // Update buffer
         typingBufferRef.current = typingBufferRef.current + letter;
-        setTypingBuffer(typingBufferRef.current);
         
         // Move selection to the next letter in the word
         const nextIndex = selectedIndex + 1;
@@ -375,7 +369,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           
           // Update buffer
           typingBufferRef.current = typingBufferRef.current.slice(0, -1);
-          setTypingBuffer(typingBufferRef.current);
         } else {
           // If at the beginning, clear the current cell's letter
           setBoard(prevBoard => {
@@ -394,7 +387,6 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           
           // Update buffer
           typingBufferRef.current = typingBufferRef.current.slice(0, -1);
-          setTypingBuffer(typingBufferRef.current);
         }
       }
     };
