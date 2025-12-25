@@ -12,7 +12,7 @@
  */
 
 // Import word lists with definitions
-import { WORD_LISTS } from './wordLists.js';
+import { WORD_LISTS, getWordDefinition } from './wordLists.js';
 
 // 3D directions: [dx, dy, dz] for word placement
 // Only axis-aligned directions (no diagonals)
@@ -282,6 +282,7 @@ export function generateCrossword3D(gridSize = 9, difficulty = 'medium', maxAtte
   placedWords.push({
     id: 0,
     word: firstWord,
+    definition: getWordDefinition(firstWord),
     start: [firstX, firstY, firstZ],
     direction: [1, 0, 0], // X+ direction
     positions: firstPositions
@@ -342,6 +343,7 @@ export function generateCrossword3D(gridSize = 9, difficulty = 'medium', maxAtte
             placedWords.push({
               id: wordId,
               word: upperWord,
+              definition: getWordDefinition(upperWord),
               start: [x - wordLetterIndex * dx, y - wordLetterIndex * dy, z - wordLetterIndex * dz],
               direction: [dx, dy, dz],
               positions: positions

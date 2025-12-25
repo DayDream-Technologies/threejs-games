@@ -5,7 +5,7 @@ import Minesweeper3D from '../../games/minesweeper/Minesweeper3D';
 import ConnectFour3D from '../../games/connectfour/ConnectFour3D';
 import Crossword3D from '../../games/crossword3d/Crossword3D';
 
-const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef, checkFunctionRef, difficulty, showOnlyBlue, showOnlyRed, showOnlyYellow, showOnlyGreen, showOnlyOrange, showOnlyPink, showOnlyWhite, showOnlyBlack, showGrid, numPlayers, boardSize }) => {
+const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef, checkFunctionRef, difficulty, showOnlyBlue, showOnlyRed, showOnlyYellow, showOnlyGreen, showOnlyOrange, showOnlyPink, showOnlyWhite, showOnlyBlack, showGrid, numPlayers, boardSize, onWordSelected, hideFilledWords }) => {
   const meshRef = useRef();
 
   useFrame((state, delta) => {
@@ -27,7 +27,7 @@ const GameScene = ({ gameId, gameState, setGameState, flagMode, hintFunctionRef,
         );
       case 'crossword-3d':
         return (
-          <Crossword3D gameState={gameState} setGameState={setGameState} showGrid={showGrid} boardSize={boardSize} hintFunctionRef={hintFunctionRef} checkFunctionRef={checkFunctionRef} />
+          <Crossword3D gameState={gameState} setGameState={setGameState} showGrid={showGrid} boardSize={boardSize} hintFunctionRef={hintFunctionRef} checkFunctionRef={checkFunctionRef} onWordSelected={onWordSelected} hideFilledWords={hideFilledWords} />
         );
       case 'tetris-3d':
         return (

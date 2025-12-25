@@ -15,7 +15,7 @@ const colors = {
   letter: '#1f2937' // dark text for letters
 };
 
-function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFunctionRef, checkFunctionRef }) {
+function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFunctionRef, checkFunctionRef, onWordSelected, hideFilledWords = false }) {
   // Set the grid size dynamically based on boardSize prop
   const gridSize = boardSize;
   const offset = (gridSize - 1) * spacing * 0.5;
@@ -62,6 +62,24 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
   const previousPlayingRef = useRef(false);
   const previousBoardSizeRef = useRef(boardSize);
 
+  // Generate crossword on initial mount
+  useEffect(() => {
+    if (!hasGameStartedRef.current && !crosswordData) {
+      // Generate initial crossword when component first mounts
+      const puzzle = generateCrossword3D(gridSize, 'medium');
+      setBoard(puzzle.board);
+      setCrosswordData(puzzle);
+      setSelectedCell(null);
+      setSelectedWordId(null);
+      setSelectedWordPositions([]);
+      typingBufferRef.current = '';
+      setCellStates(createEmptyCellStates(gridSize));
+      hasGameStartedRef.current = true;
+      // Set game to playing state so clicks work
+      setGameState(prev => ({ ...prev, isPlaying: true }));
+    }
+  }, [gridSize, crosswordData, setGameState]);
+
   // Generate crossword when game starts or board size changes
   useEffect(() => {
     const boardSizeChanged = boardSize !== previousBoardSizeRef.current;
@@ -79,6 +97,10 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
       setSelectedWordPositions([]);
       typingBufferRef.current = '';
       setCellStates(createEmptyCellStates(gridSize));
+      // Clear selected word info when starting new game
+      if (onWordSelected) {
+        onWordSelected(null);
+      }
       setGameState({
         isPlaying: true,
         gameWon: false,
@@ -96,6 +118,10 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
       setSelectedWordPositions([]);
       typingBufferRef.current = '';
       setCellStates(createEmptyCellStates(gridSize));
+      // Clear selected word info when starting new game
+      if (onWordSelected) {
+        onWordSelected(null);
+      }
       setGameState({
         isPlaying: true,
         gameWon: false,
@@ -114,7 +140,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
     
     // Track previous state
     previousPlayingRef.current = gameState.isPlaying;
-  }, [gameState.isPlaying, setGameState, boardSize, gridSize]);
+  }, [gameState.isPlaying, setGameState, boardSize, gridSize, onWordSelected]);
 
   // Get word positions for a given word ID
   const getWordPositions = useCallback((wordId) => {
@@ -136,17 +162,32 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
     if (selectedCell && selectedCell[0] === x && selectedCell[1] === y && selectedCell[2] === z) {
       const currentIndex = wordIds.indexOf(selectedWordId);
       const nextIndex = (currentIndex + 1) % wordIds.length;
-      return wordIds[nextIndex];
+      const nextWordId = wordIds[nextIndex];
+      
+      // Notify parent about the cycled word
+      if (onWordSelected && crosswordData && crosswordData.words) {
+        const wordData = crosswordData.words.find(w => w.id === nextWordId);
+        if (wordData) {
+          onWordSelected({
+            word: wordData.word,
+            definition: wordData.definition || 'Definition not available',
+            wordId: nextWordId
+          });
+        }
+      }
+      
+      return nextWordId;
     }
     
     // Otherwise, select the first word
     return wordIds[0];
-  }, [board, selectedCell, selectedWordId]);
+  }, [board, selectedCell, selectedWordId, onWordSelected, crosswordData]);
 
   // Handle cell click - select cell and word
   const handleCellClick = useCallback((x, y, z, e) => {
     e.stopPropagation();
-    if (!gameState.isPlaying) return;
+    // Allow clicks if there's a crossword puzzle (even if not explicitly "playing")
+    if (!crosswordData) return;
     
     // Only allow selecting word cells
     if (board[x][y][z] && board[x][y][z].isWordCell) {
@@ -157,14 +198,56 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
         const positions = getWordPositions(wordId);
         setSelectedWordPositions(positions);
         typingBufferRef.current = ''; // Clear ref buffer too
+        
+        // Notify parent component about selected word
+        if (onWordSelected && crosswordData && crosswordData.words) {
+          const wordData = crosswordData.words.find(w => w.id === wordId);
+          if (wordData) {
+            onWordSelected({
+              word: wordData.word,
+              definition: wordData.definition || 'Definition not available',
+              wordId: wordId
+            });
+          }
+        }
       }
     }
-  }, [board, gameState.isPlaying, selectWordForCell, getWordPositions]);
+  }, [board, crosswordData, selectWordForCell, getWordPositions, onWordSelected]);
 
   // Check if a position is in the selected word
   const isInSelectedWord = useCallback((x, y, z) => {
     return selectedWordPositions.some(([px, py, pz]) => px === x && py === y && pz === z);
   }, [selectedWordPositions]);
+
+  // Check if a word is filled (all cells have letters)
+  const isWordFilled = useCallback((wordId) => {
+    if (!crosswordData || !crosswordData.words) return false;
+    const word = crosswordData.words.find(w => w.id === wordId);
+    if (!word) return false;
+    
+    for (const [x, y, z] of word.positions) {
+      const cell = board[x][y][z];
+      if (!cell || !cell.isWordCell || !cell.letter) {
+        return false; // At least one cell is not filled
+      }
+    }
+    return true; // All cells have letters
+  }, [board, crosswordData]);
+
+  // Check if a cell should be hidden (all words it belongs to are filled)
+  const shouldHideCell = useCallback((x, y, z) => {
+    if (!hideFilledWords) return false;
+    const cell = board[x][y][z];
+    if (!cell || !cell.isWordCell || !cell.wordIds) return false;
+    
+    // Check if all words this cell belongs to are filled
+    for (const wordId of cell.wordIds) {
+      if (!isWordFilled(wordId)) {
+        return false; // At least one word is not filled, don't hide
+      }
+    }
+    return true; // All words are filled, hide the cell
+  }, [board, hideFilledWords, isWordFilled]);
 
   // Check if the puzzle is complete (all word cells have correct letters)
   const checkPuzzleComplete = useCallback((currentBoard) => {
@@ -319,6 +402,17 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           return newBoard;
         });
         
+        // Clear the wrong state when a new letter is entered
+        setCellStates(prev => {
+          const newStates = prev.map(col => col.map(row => row.map(state => state)));
+          const [px, py, pz] = positions[selectedIndex];
+          // If the cell was marked as wrong, clear it back to null (grey)
+          if (newStates[px][py][pz] === 'wrong') {
+            newStates[px][py][pz] = null;
+          }
+          return newStates;
+        });
+        
         // Update buffer
         typingBufferRef.current = typingBufferRef.current + letter;
         
@@ -416,6 +510,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           const isSelected = selectedCell && selectedCell[0] === x && selectedCell[1] === y && selectedCell[2] === z;
           const inSelectedWord = isInSelectedWord(x, y, z) && !isSelected;
           const cellState = cellStates[x][y][z]; // 'correct', 'wrong', 'hinted', or null
+          const isHidden = shouldHideCell(x, y, z);
           
           cubes.push({
             x,
@@ -429,7 +524,8 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
             inSelectedWord,
             cellState,
             letter: cell && cell.letter ? cell.letter : null,
-            isEmpty: cell === null
+            isEmpty: cell === null,
+            isHidden
           });
         }
       }
@@ -458,6 +554,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           anchorY="middle"
           outlineWidth={0.02}
           outlineColor="#ffffff"
+          raycast={null}
         >
           {letter}
         </Text>
@@ -471,6 +568,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           rotation={[0, Math.PI, 0]}
           outlineWidth={0.02}
           outlineColor="#ffffff"
+          raycast={null}
         >
           {letter}
         </Text>
@@ -484,6 +582,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           rotation={[0, Math.PI / 2, 0]}
           outlineWidth={0.02}
           outlineColor="#ffffff"
+          raycast={null}
         >
           {letter}
         </Text>
@@ -497,6 +596,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           rotation={[0, -Math.PI / 2, 0]}
           outlineWidth={0.02}
           outlineColor="#ffffff"
+          raycast={null}
         >
           {letter}
         </Text>
@@ -510,6 +610,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           rotation={[-Math.PI / 2, 0, 0]}
           outlineWidth={0.02}
           outlineColor="#ffffff"
+          raycast={null}
         >
           {letter}
         </Text>
@@ -523,6 +624,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
           rotation={[Math.PI / 2, 0, 0]}
           outlineWidth={0.02}
           outlineColor="#ffffff"
+          raycast={null}
         >
           {letter}
         </Text>
@@ -542,6 +644,11 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
         
         // Show word cells anywhere, or empty cells only on outer faces
         if (!cube.isWordCell && (!isOuterFace || !showGrid)) {
+          return null;
+        }
+        
+        // Hide filled words if toggle is on
+        if (cube.isHidden) {
           return null;
         }
         
@@ -573,9 +680,14 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
             <Box
               args={[0.8, 0.8, 0.8]}
               position={[cube.px, cube.py, cube.pz]}
-              onClick={(e) => handleCellClick(cube.x, cube.y, cube.z, e)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!cube.isHidden && cube.isWordCell) {
+                  handleCellClick(cube.x, cube.y, cube.z, e);
+                }
+              }}
               onPointerOver={(e) => {
-                if (cube.isWordCell) {
+                if (cube.isWordCell && !cube.isHidden) {
                   e.stopPropagation();
                   document.body.style.cursor = 'pointer';
                 }
@@ -597,7 +709,7 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
             </Box>
             
             {/* Display letter on all 6 faces */}
-            {cube.isWordCell && renderLetterOnAllFaces(cube.letter, cube.px, cube.py, cube.pz)}
+            {cube.isWordCell && !cube.isHidden && renderLetterOnAllFaces(cube.letter, cube.px, cube.py, cube.pz)}
           </group>
         );
       })}

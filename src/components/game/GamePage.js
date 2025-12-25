@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -27,6 +27,8 @@ const GamePage = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [numPlayers, setNumPlayers] = useState(2);
   const [boardSize, setBoardSize] = useState(5);
+  const [hideFilledWords, setHideFilledWords] = useState(false);
+  const [selectedWordInfo, setSelectedWordInfo] = useState(null); // { word, definition, wordId }
   const [gameState, setGameState] = useState({
     score: 0,
     lives: 1,
@@ -46,7 +48,12 @@ const GamePage = () => {
   const handleStartGame = () => {
     setGameState(prev => ({ ...prev, isPlaying: true }));
     setShowInstructions(false);
+    setSelectedWordInfo(null); // Clear selected word when starting new game
   };
+
+  const handleWordSelected = useCallback((wordInfo) => {
+    setSelectedWordInfo(wordInfo); // wordInfo can be null to clear the selection
+  }, []);
 
   const handleCloseInstructions = () => {
     setShowInstructions(false);
@@ -312,7 +319,7 @@ const GamePage = () => {
             >
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} />
-              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} checkFunctionRef={checkFunctionRef} difficulty={difficulty} showOnlyBlue={showOnlyBlue} showOnlyRed={showOnlyRed} showOnlyYellow={showOnlyYellow} showOnlyGreen={showOnlyGreen} showOnlyOrange={showOnlyOrange} showOnlyPink={showOnlyPink} showOnlyWhite={showOnlyWhite} showOnlyBlack={showOnlyBlack} showGrid={showGrid} numPlayers={numPlayers} boardSize={boardSize} />
+              <GameScene gameId={gameId} gameState={gameState} setGameState={setGameState} flagMode={flagMode} hintFunctionRef={hintFunctionRef} checkFunctionRef={checkFunctionRef} difficulty={difficulty} showOnlyBlue={showOnlyBlue} showOnlyRed={showOnlyRed} showOnlyYellow={showOnlyYellow} showOnlyGreen={showOnlyGreen} showOnlyOrange={showOnlyOrange} showOnlyPink={showOnlyPink} showOnlyWhite={showOnlyWhite} showOnlyBlack={showOnlyBlack} showGrid={showGrid} numPlayers={numPlayers} boardSize={boardSize} onWordSelected={gameId === 'crossword-3d' ? handleWordSelected : undefined} hideFilledWords={gameId === 'crossword-3d' ? hideFilledWords : false} />
               <OrbitControls enableZoom={gameId === 'minesweeper-3d' || gameId === 'connectfour-3d' || gameId === 'crossword-3d'} />
             </Canvas>
           </div>
@@ -586,6 +593,7 @@ const GamePage = () => {
                     // Reset the game by temporarily stopping and restarting
                     setGameState(prev => ({ ...prev, isPlaying: false }));
                     setGameState(prev => ({ ...prev, isPlaying: true }));
+                    setSelectedWordInfo(null); // Clear selected word when changing board size
                   }}
                   className="difficulty-select"
                   style={{ minWidth: '100px' }}
@@ -595,6 +603,20 @@ const GamePage = () => {
                   <option value={9}>9×9×9</option>
                 </select>
               </div>
+              {selectedWordInfo && (
+                <div className="word-hint-display" style={{
+                  padding: '10px 15px',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '8px',
+                  border: '2px solid #3b82f6',
+                  minWidth: '200px',
+                  maxWidth: '400px'
+                }}>
+                  <div style={{ fontSize: '0.9em', color: '#4b5563' }}>
+                    {selectedWordInfo.definition}
+                  </div>
+                </div>
+              )}
               <button 
                 className={`instructions-button ${hintButtonRed ? 'hint-button-red' : ''}`}
                 onClick={() => {
@@ -620,6 +642,12 @@ const GamePage = () => {
                 disabled={!gameState.isPlaying}
               >
                 ✓ Check
+              </button>
+              <button 
+                className="instructions-button"
+                onClick={() => setHideFilledWords(prev => !prev)}
+              >
+                {hideFilledWords ? 'Show Filled Words' : 'Hide Filled Words'}
               </button>
             </div>
           )}
