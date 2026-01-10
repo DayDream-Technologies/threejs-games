@@ -10,7 +10,7 @@ import { Box, Edges, Text, Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
 import { DIFFICULTY_CONFIG, CUBE_CONFIG, COLORS, getDropSpeed, LINES_PER_LEVEL } from './config';
-import { createPiece, getPieceBlocks, PieceBag } from './pieces';
+import { createPiece, getPieceBlocks, PieceBag, calculateSpawnPosition } from './pieces';
 import {
   createBoard,
   tryMove,
@@ -21,7 +21,6 @@ import {
   getGhostPiece,
   hardDrop,
   isGameOver,
-  getSpawnPosition,
   calculateTotalScore,
   getOccupiedCells
 } from './gameLogic';
@@ -187,7 +186,8 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
     const type = nextPieceRef.current;
     nextPieceRef.current = pieceBagRef.current.next();
     
-    const [sx, sy, sz] = getSpawnPosition(width, depth, height);
+    // Calculate spawn position based on piece type to keep it within bounds
+    const [sx, sy, sz] = calculateSpawnPosition(type, width, depth, height);
     const piece = createPiece(type, sx, sy, sz);
     
     // Check for game over

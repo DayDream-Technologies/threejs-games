@@ -228,7 +228,7 @@ export const movePiece = (piece, dx, dy, dz) => {
 };
 
 /**
- * Get the bounding box of a piece's shape
+ * Get the bounding box of a piece's shape (world coordinates)
  * @param {Object} piece - Piece object
  * @returns {Object} { minX, maxX, minY, maxY, minZ, maxZ }
  */
@@ -249,6 +249,59 @@ export const getPieceBounds = (piece) => {
   }
   
   return { minX, maxX, minY, maxY, minZ, maxZ };
+};
+
+/**
+ * Get the bounding box of a raw shape (relative coordinates)
+ * @param {number[][]} shape - Array of [x, y, z] offsets
+ * @returns {Object} { minX, maxX, minY, maxY, minZ, maxZ }
+ */
+export const getShapeBounds = (shape) => {
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  
+  for (const [x, y, z] of shape) {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+    minZ = Math.min(minZ, z);
+    maxZ = Math.max(maxZ, z);
+  }
+  
+  return { minX, maxX, minY, maxY, minZ, maxZ };
+};
+
+/**
+ * Calculate spawn position for a piece type that keeps it within bounds
+ * @param {string} pieceType - Type of piece (I, O, T, S, Z, L, J)
+ * @param {number} width - Board width
+ * @param {number} depth - Board depth
+ * @param {number} height - Board height
+ * @returns {[number, number, number]} Spawn position [x, y, z]
+ */
+export const calculateSpawnPosition = (pieceType, width, depth, height) => {
+  const template = TETROMINOES[pieceType];
+  const bounds = getShapeBounds(template.shape);
+  
+  // Start at center
+  let x = Math.floor(width / 2);
+  let z = Math.floor(depth / 2);
+  
+  // Clamp X position to keep piece within bounds
+  // minX + x >= 0  =>  x >= -minX
+  // maxX + x < width  =>  x < width - maxX  =>  x <= width - 1 - maxX
+  const minValidX = -bounds.minX;
+  const maxValidX = width - 1 - bounds.maxX;
+  x = Math.max(minValidX, Math.min(maxValidX, x));
+  
+  // Clamp Z position to keep piece within bounds
+  const minValidZ = -bounds.minZ;
+  const maxValidZ = depth - 1 - bounds.maxZ;
+  z = Math.max(minValidZ, Math.min(maxValidZ, z));
+  
+  return [x, height - 1, z];
 };
 
 /**

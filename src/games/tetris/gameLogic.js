@@ -298,11 +298,12 @@ export const isGameOver = (piece, board, width, depth, height) => {
 };
 
 /**
- * Get spawn position for a new piece
+ * Get spawn position for a new piece (legacy - use calculateSpawnPosition from pieces.js)
  * @param {number} width
  * @param {number} depth
  * @param {number} height
  * @returns {[number, number, number]} Spawn position
+ * @deprecated Use calculateSpawnPosition from pieces.js instead
  */
 export const getSpawnPosition = (width, depth, height) => {
   return [
