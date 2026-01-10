@@ -2,14 +2,14 @@ export const games = [
   {
     id: 'tetris-3d',
     title: '3D Tetris',
-    description: 'Classic Tetris reimagined in stunning 3D. Stack blocks in three dimensions and clear layers to survive!',
+    description: 'True 3D Tetris! Stack tetrominoes in a 3D well and clear complete horizontal planes. Rotate pieces around multiple axes!',
     genre: 'Puzzle',
     difficulty: 'Medium',
     playTime: '5-15 min',
     image: '/images/tetris-3d.jpg',
     path: '/games/tetris-3d',
-    tags: ['puzzle', '3d', 'classic', 'strategy'],
-    published: false
+    tags: ['puzzle', '3d', 'classic', 'strategy', 'tetris'],
+    published: true
   },
   {
     id: 'snake-3d',

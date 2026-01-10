@@ -1,152 +1,120 @@
+/**
+ * InstructionsPopup Component
+ * 
+ * Displays game instructions from the game registry.
+ */
+
 import React from 'react';
+import { getGame } from '../../lib/game';
 import './InstructionsPopup.css';
 
+// Default instructions for unregistered games
+const defaultInstructions = {
+  objective: 'Complete the game objectives!',
+  controls: ['Use arrow keys to move', 'Space to interact', 'R to reset'],
+  tips: ['Have fun!', 'Try different strategies', 'Practice makes perfect']
+};
+
+// Legacy instructions for placeholder games not yet migrated
+const legacyInstructions = {
+  'tetris-3d': {
+    objective: 'Stack blocks in 3D to clear layers and survive!',
+    controls: [
+      'Arrow Keys: Move blocks',
+      'Space: Rotate block',
+      'Shift: Drop block faster',
+      'R: Reset game'
+    ],
+    tips: [
+      'Plan your moves in 3D space',
+      'Clear layers from bottom to top',
+      'Watch for gaps in your structure'
+    ]
+  },
+  'snake-3d': {
+    objective: 'Navigate through 3D space as a growing snake!',
+    controls: [
+      'Arrow Keys: Move snake',
+      'WASD: Rotate camera',
+      'Space: Jump to different level',
+      'R: Reset game'
+    ],
+    tips: [
+      'Don\'t hit walls or yourself',
+      'Collect food to grow longer',
+      'Use 3D movement to your advantage'
+    ]
+  },
+  'pong-3d': {
+    objective: 'Paddle your way through multiple dimensions!',
+    controls: [
+      'W/S: Move paddle up/down',
+      'A/D: Move paddle left/right',
+      'Q/E: Rotate paddle',
+      'Space: Serve ball'
+    ],
+    tips: [
+      'Predict ball trajectory in 3D',
+      'Use paddle rotation for tricky shots',
+      'Watch for ball speed changes'
+    ]
+  },
+  'breakout-3d': {
+    objective: 'Break through layers of 3D blocks!',
+    controls: [
+      'Arrow Keys: Move paddle',
+      'Space: Launch ball',
+      'Mouse: Rotate camera',
+      'R: Reset game'
+    ],
+    tips: [
+      'Aim for weak spots in blocks',
+      'Use paddle edges for better angles',
+      'Watch for power-ups'
+    ]
+  },
+  'pacman-3d': {
+    objective: 'Collect dots and avoid ghosts in 3D!',
+    controls: [
+      'Arrow Keys: Move Pac-Man',
+      'WASD: Rotate camera',
+      'Space: Jump between levels',
+      'R: Reset game'
+    ],
+    tips: [
+      'Plan your route through the maze',
+      'Use power pellets to eat ghosts',
+      'Watch for ghost patterns'
+    ]
+  },
+  'asteroids-3d': {
+    objective: 'Destroy 3D asteroids in space!',
+    controls: [
+      'Arrow Keys: Move ship',
+      'Space: Shoot',
+      'Shift: Thrust',
+      'R: Reset game'
+    ],
+    tips: [
+      'Aim carefully in 3D space',
+      'Watch for asteroid trajectories',
+      'Use thrust sparingly'
+    ]
+  }
+};
+
 const InstructionsPopup = ({ game, onClose, onStart }) => {
-  const getInstructions = (gameId) => {
-    const instructions = {
-      'tetris-3d': {
-        objective: 'Stack blocks in 3D to clear layers and survive!',
-        controls: [
-          'Arrow Keys: Move blocks',
-          'Space: Rotate block',
-          'Shift: Drop block faster',
-          'R: Reset game'
-        ],
-        tips: [
-          'Plan your moves in 3D space',
-          'Clear layers from bottom to top',
-          'Watch for gaps in your structure'
-        ]
-      },
-      'snake-3d': {
-        objective: 'Navigate through 3D space as a growing snake!',
-        controls: [
-          'Arrow Keys: Move snake',
-          'WASD: Rotate camera',
-          'Space: Jump to different level',
-          'R: Reset game'
-        ],
-        tips: [
-          'Don\'t hit walls or yourself',
-          'Collect food to grow longer',
-          'Use 3D movement to your advantage'
-        ]
-      },
-      'pong-3d': {
-        objective: 'Paddle your way through multiple dimensions!',
-        controls: [
-          'W/S: Move paddle up/down',
-          'A/D: Move paddle left/right',
-          'Q/E: Rotate paddle',
-          'Space: Serve ball'
-        ],
-        tips: [
-          'Predict ball trajectory in 3D',
-          'Use paddle rotation for tricky shots',
-          'Watch for ball speed changes'
-        ]
-      },
-      'breakout-3d': {
-        objective: 'Break through layers of 3D blocks!',
-        controls: [
-          'Arrow Keys: Move paddle',
-          'Space: Launch ball',
-          'Mouse: Rotate camera',
-          'R: Reset game'
-        ],
-        tips: [
-          'Aim for weak spots in blocks',
-          'Use paddle edges for better angles',
-          'Watch for power-ups'
-        ]
-      },
-      'pacman-3d': {
-        objective: 'Collect dots and avoid ghosts in 3D!',
-        controls: [
-          'Arrow Keys: Move Pac-Man',
-          'WASD: Rotate camera',
-          'Space: Jump between levels',
-          'R: Reset game'
-        ],
-        tips: [
-          'Plan your route through the maze',
-          'Use power pellets to eat ghosts',
-          'Watch for ghost patterns'
-        ]
-      },
-      'asteroids-3d': {
-        objective: 'Destroy 3D asteroids in space!',
-        controls: [
-          'Arrow Keys: Move ship',
-          'Space: Shoot',
-          'Shift: Thrust',
-          'R: Reset game'
-        ],
-        tips: [
-          'Aim carefully in 3D space',
-          'Watch for asteroid trajectories',
-          'Use thrust sparingly'
-        ]
-      },
-      'minesweeper-3d': {
-        objective: 'Reveal all safe cubes in a 3D grid without clicking a bomb.',
-        controls: [
-          'Left Click: Reveal cube / flood reveal if zero',
-          'Right Click: Flag/unflag suspected bomb (turns blue)',
-          'Double Click on revealed number: Remove that cube from scene',
-          'Mouse/Wheel: Orbit and zoom camera',
-          'F: Toggle flag mode (left click becomes right click)',
-          'R: Reset game'
-        ],
-        tips: [
-          'Numbers show count of adjacent bombs in 26-neighborhood',
-          'Use flags to track bombs; bombs remaining updates as you flag',
-          'Zoom in/out to inspect deeper layers',
-          'Scoring: Outer layer cubes = 10 points, Second layer = 100 points, Center cube = 250 points',
-          'Difficulty: Easy (5×5×5), Medium (7×7×7), Hard (9×9×9) - bomb count scales proportionally'
-        ]
-      },
-      'connectfour-3d': {
-        objective: 'Be the first player to get four pieces in a row! Pieces can be connected vertically, horizontally, or diagonally in all 3D directions.',
-        controls: [
-          'Board Size: Choose 5×5×5, 7×7×7, or 9×9×9 from dropdown',
-          'Players: Choose 2-8 players from dropdown',
-          'Arrow Keys: Move the white preview piece between columns and depths',
-          'Enter or Space: Drop piece in the current column',
-          'Click on Column: Drop piece in clicked column',
-          'Mouse/Wheel: Rotate and zoom the 3D board',
-          'Hover over columns: See where pieces will land',
-          'B: Toggle show only blue pieces',
-          'R: Toggle show only red pieces',
-          'Y: Toggle show only yellow pieces',
-          'G: Toggle show only green pieces',
-          'O: Toggle show only orange pieces',
-          'P: Toggle show only pink pieces',
-          'W: Toggle show only white pieces',
-          'K: Toggle show only black pieces',
-          'Use grid button to toggle grid visibility'
-        ],
-        tips: [
-          'Choose board size (5×5×5, 7×7×7, 9×9×9) and 2-8 players from the dropdown menus',
-          'Board size and player count changes automatically start a new game',
-          'Player colors: 1(Red), 2(Blue), 3(Yellow), 4(Green), 5(Orange), 6(Pink), 7(White), 8(Black)',
-          'Pieces fall to the lowest available position in the selected column',
-          'Win by connecting 4 pieces in any direction - includes all 3D diagonals!',
-          'When someone wins, only the winning 4 pieces remain visible',
-          'Use the white preview piece to plan your moves',
-          'Use B, R, Y, G, O, P, W, K keys to filter pieces by color - great for strategy!'
-        ]
-      }
-    };
-
-    return instructions[gameId] || {
-      objective: 'Complete the game objectives!',
-      controls: ['Use arrow keys to move', 'Space to interact', 'R to reset'],
-      tips: ['Have fun!', 'Try different strategies', 'Practice makes perfect']
-    };
-  };
-
-  const instructions = getInstructions(game.id);
+  // Try to get instructions from registry first
+  const gameConfig = getGame(game.id);
+  
+  let instructions;
+  if (gameConfig?.getInstructions) {
+    instructions = gameConfig.getInstructions();
+  } else if (legacyInstructions[game.id]) {
+    instructions = legacyInstructions[game.id];
+  } else {
+    instructions = defaultInstructions;
+  }
 
   return (
     <div className="instructions-overlay">
@@ -194,4 +162,4 @@ const InstructionsPopup = ({ game, onClose, onStart }) => {
   );
 };
 
-export default InstructionsPopup; 
+export default InstructionsPopup;

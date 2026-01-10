@@ -4,6 +4,9 @@ import LandingPage from './components/landing/LandingPage';
 import GamePage from './components/game/GamePage';
 import './App.css';
 
+// Import games to trigger registration with the game framework
+import './games';
+
 function App() {
   return (
     <Router>

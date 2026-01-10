@@ -1,21 +1,6 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { Box, Text, Edges } from '@react-three/drei';
-import { useRef } from 'react';
-
-// Difficulty configurations
-const DIFFICULTY_CONFIG = {
-  Easy: { gridSize: 5, bombRatio: 0.24 }, // 5x5x5 = 125 cubes, 30 bombs = 24%
-  Medium: { gridSize: 7, bombRatio: 0.24 }, // 7x7x7 = 343 cubes, ~82 bombs = 24%
-  Hard: { gridSize: 9, bombRatio: 0.24 } // 9x9x9 = 729 cubes, ~175 bombs = 24%
-};
-
-const colors = {
-  neutral: '#9ca3af', // gray
-  revealed: '#e5e7eb', // light gray
-  bomb: '#ef4444', // red (only used on game over reveal)
-  flag: '#3b82f6', // blue
-  correctFlag: '#10b981' // green (correctly flagged bombs)
-};
+import { DIFFICULTY_CONFIG, COLORS, CUBE_CONFIG, SCORING } from './config';
 
 function getNeighbors(x, y, z, gridSize) {
   const neighbors = [];
@@ -105,7 +90,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef, dif
   const DRAG_THRESHOLD = 4; // pixels
 
   // center grid around origin with spacing
-  const spacing = 0.9;
+  const spacing = CUBE_CONFIG.spacing;
   const offset = (gridSize - 1) * spacing * 0.5;
 
   // bombs remaining derived from flags
@@ -388,9 +373,9 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef, dif
 
   const getScoreForLayer = useCallback((layer) => {
     switch (layer) {
-      case 'outer': return 10;
-      case 'second': return 100;
-      case 'center': return 250;
+      case 'outer': return SCORING.outer;
+      case 'second': return SCORING.second;
+      case 'center': return SCORING.center;
       default: return 0;
     }
   }, []);
@@ -441,12 +426,12 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef, dif
         const px = x * spacing - offset;
         const py = y * spacing - offset;
         const pz = z * spacing - offset;
-        let color = colors.neutral;
-        if (cell.flagged) color = colors.flag;
-        if (cell.revealed && !cell.bomb) color = colors.revealed;
-        if (cell.revealed && cell.bomb) color = colors.bomb;
+        let color = COLORS.neutral;
+        if (cell.flagged) color = COLORS.flag;
+        if (cell.revealed && !cell.bomb) color = COLORS.revealed;
+        if (cell.revealed && cell.bomb) color = COLORS.bomb;
         // When game is over, correctly flagged bombs should be green
-        if (gameOver && cell.bomb && cell.flagged) color = colors.correctFlag;
+        if (gameOver && cell.bomb && cell.flagged) color = COLORS.correctFlag;
         cubes.push({ x, y, z, px, py, pz, color, cell });
       }
 
@@ -454,7 +439,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef, dif
     <group>
       {cubes.map(({ x, y, z, px, py, pz, color, cell }) => (
         <group key={`${x}-${y}-${z}`} position={[px, py, pz]}>
-          <Box args={[0.8, 0.8, 0.8]}
+          <Box args={[CUBE_CONFIG.size, CUBE_CONFIG.size, CUBE_CONFIG.size]}
             onClick={(e) => onLeftClick(e, x, y, z)}
             onContextMenu={(e) => onRightClick(e, x, y, z)}
             onDoubleClick={(e) => onDoubleClick(e, x, y, z)}
@@ -463,7 +448,7 @@ function Minesweeper3D({ gameState, setGameState, flagMode, hintFunctionRef, dif
             onPointerUp={(e) => onPointerUp(e, x, y, z)}
           >
             <meshStandardMaterial color={color} />
-            <Edges scale={1.001} color="#ffffff" threshold={15} />
+            <Edges scale={1.001} color={CUBE_CONFIG.edgeColor} threshold={15} />
           </Box>
           {cell.flagged && (
             <>
