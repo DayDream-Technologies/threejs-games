@@ -344,10 +344,22 @@ export const calculateTotalScore = (planesCleared, level, dropDistance = 0) => {
 export const getOccupiedCells = (board, width, depth, height) => {
   const cells = [];
   
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
-      for (let z = 0; z < depth; z++) {
-        if (board[x][y][z] !== null) {
+  // Safety check: ensure board dimensions match expected dimensions
+  if (!board || !Array.isArray(board) || board.length === 0) {
+    return cells;
+  }
+  
+  // Use actual board dimensions to avoid out-of-bounds access
+  const actualWidth = board.length;
+  const actualHeight = board[0]?.length || 0;
+  const actualDepth = board[0]?.[0]?.length || 0;
+  
+  for (let x = 0; x < actualWidth; x++) {
+    if (!board[x]) continue;
+    for (let y = 0; y < actualHeight; y++) {
+      if (!board[x][y]) continue;
+      for (let z = 0; z < actualDepth; z++) {
+        if (board[x][y][z] !== null && board[x][y][z] !== undefined) {
           cells.push({ x, y, z, color: board[x][y][z] });
         }
       }

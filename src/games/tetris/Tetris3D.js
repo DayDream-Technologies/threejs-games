@@ -283,22 +283,28 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
       let newPiece = null;
       
       switch (e.key) {
-        case 'ArrowLeft':
+        // WASD for movement
+        case 'a':
+        case 'A':
           e.preventDefault();
           newPiece = tryMove(currentPiece, -1, 0, 0, board, width, depth, height);
           break;
-        case 'ArrowRight':
+        case 'd':
+        case 'D':
           e.preventDefault();
           newPiece = tryMove(currentPiece, 1, 0, 0, board, width, depth, height);
           break;
-        case 'ArrowUp':
+        case 'w':
+        case 'W':
           e.preventDefault();
           newPiece = tryMove(currentPiece, 0, 0, 1, board, width, depth, height);
           break;
-        case 'ArrowDown':
+        case 's':
+        case 'S':
           e.preventDefault();
           newPiece = tryMove(currentPiece, 0, 0, -1, board, width, depth, height);
           break;
+        // Q/E for Y-axis rotation (horizontal spin)
         case 'q':
         case 'Q':
           e.preventDefault();
@@ -309,13 +315,12 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
           e.preventDefault();
           newPiece = tryRotate(currentPiece, 'Y', true, board, width, depth, height);
           break;
-        case 'w':
-        case 'W':
+        // Arrow Up/Down for X-axis rotation (flip)
+        case 'ArrowUp':
           e.preventDefault();
           newPiece = tryRotate(currentPiece, 'X', true, board, width, depth, height);
           break;
-        case 's':
-        case 'S':
+        case 'ArrowDown':
           e.preventDefault();
           newPiece = tryRotate(currentPiece, 'X', false, board, width, depth, height);
           break;
@@ -440,11 +445,15 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
   // Get ghost piece
   const ghostPiece = useMemo(() => {
     if (!currentPiece || gameOver || isPaused) return null;
+    // Safety check: ensure board dimensions match
+    if (!board || board.length !== width) return null;
     return getGhostPiece(currentPiece, board, width, depth, height);
   }, [currentPiece, board, width, depth, height, gameOver, isPaused]);
   
   // Get occupied cells for rendering
   const occupiedCells = useMemo(() => {
+    // Safety check: ensure board exists and has correct dimensions
+    if (!board || board.length !== width) return [];
     return getOccupiedCells(board, width, depth, height);
   }, [board, width, depth, height]);
   

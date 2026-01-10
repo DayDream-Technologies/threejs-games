@@ -5,10 +5,9 @@
 export const getInstructions = () => ({
   objective: 'Stack falling 3D tetromino pieces to fill complete horizontal planes. Clear planes to score points and prevent the well from filling up!',
   controls: [
-    'Arrow Left/Right: Move piece on X axis',
-    'Arrow Up/Down: Move piece on Z axis',
-    'Q/E: Rotate piece around Y axis (vertical spin)',
-    'W/S: Rotate piece around X axis (flip forward/back)',
+    'W/A/S/D: Move piece (W=forward, S=back, A=left, D=right)',
+    'Q/E: Rotate piece around Y axis (horizontal spin)',
+    'Arrow Up/Down: Rotate piece around X axis (flip forward/back)',
     'Space: Hard drop (instant drop)',
     'Shift: Soft drop (faster fall)',
     'P: Pause/Resume game',
