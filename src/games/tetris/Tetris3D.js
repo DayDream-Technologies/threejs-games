@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Box, Edges, Text, Line } from '@react-three/drei';
+import { Box, Edges, Text, Line, Cone, Cylinder } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
 import { DIFFICULTY_CONFIG, CUBE_CONFIG, COLORS, getDropSpeed, LINES_PER_LEVEL } from './config';
@@ -157,6 +157,221 @@ const NextPiecePreview = ({ pieceType, position }) => {
   );
 };
 
+// Single arrow indicator component
+const Arrow = ({ position, rotation, color, label, labelOffset = [0, 0.4, 0] }) => {
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Arrow shaft */}
+      <Cylinder args={[0.06, 0.06, 0.6, 8]} position={[0, 0.3, 0]}>
+        <meshStandardMaterial color={color} />
+      </Cylinder>
+      {/* Arrow head */}
+      <Cone args={[0.15, 0.3, 8]} position={[0, 0.75, 0]}>
+        <meshStandardMaterial color={color} />
+      </Cone>
+      {/* Key label */}
+      <Text
+        position={labelOffset}
+        fontSize={0.25}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {label}
+      </Text>
+    </group>
+  );
+};
+
+// Curved rotation arrow component
+const RotationArrow = ({ position, axis, color, label, clockwise = true }) => {
+  const curvePoints = useMemo(() => {
+    const points = [];
+    const radius = 0.5;
+    const segments = 12;
+    const startAngle = clockwise ? 0 : Math.PI;
+    const endAngle = clockwise ? Math.PI * 0.75 : Math.PI * 1.75;
+    
+    for (let i = 0; i <= segments; i++) {
+      const angle = startAngle + (endAngle - startAngle) * (i / segments);
+      if (axis === 'Y') {
+        points.push([Math.cos(angle) * radius, 0, Math.sin(angle) * radius]);
+      } else {
+        points.push([0, Math.cos(angle) * radius, Math.sin(angle) * radius]);
+      }
+    }
+    return points;
+  }, [axis, clockwise]);
+  
+  // Calculate arrow head position and rotation
+  const arrowHeadTransform = useMemo(() => {
+    const lastPoint = curvePoints[curvePoints.length - 1];
+    const prevPoint = curvePoints[curvePoints.length - 2];
+    
+    // Direction vector
+    const dx = lastPoint[0] - prevPoint[0];
+    const dy = lastPoint[1] - prevPoint[1];
+    const dz = lastPoint[2] - prevPoint[2];
+    
+    // Calculate rotation to point in direction of curve
+    let rotX = 0, rotY = 0, rotZ = 0;
+    if (axis === 'Y') {
+      rotY = Math.atan2(dx, dz);
+      rotX = Math.PI / 2;
+    } else {
+      rotX = Math.atan2(dy, dz);
+    }
+    
+    return {
+      position: lastPoint,
+      rotation: [rotX, rotY, rotZ]
+    };
+  }, [curvePoints, axis]);
+  
+  return (
+    <group position={position}>
+      {/* Curved line */}
+      <Line
+        points={curvePoints}
+        color={color}
+        lineWidth={3}
+      />
+      {/* Arrow head at end of curve */}
+      <group 
+        position={arrowHeadTransform.position} 
+        rotation={arrowHeadTransform.rotation}
+      >
+        <Cone args={[0.1, 0.2, 6]}>
+          <meshStandardMaterial color={color} />
+        </Cone>
+      </group>
+      {/* Label */}
+      <Text
+        position={axis === 'Y' ? [0, 0.4, 0] : [0.6, 0, 0]}
+        fontSize={0.2}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {label}
+      </Text>
+    </group>
+  );
+};
+
+// Direction indicators component showing movement and rotation controls
+const DirectionIndicators = ({ width, depth, height, spacing }) => {
+  const centerX = (width - 1) * spacing / 2;
+  const centerZ = (depth - 1) * spacing / 2;
+  const baseY = height * spacing + 1.5; // Above the well
+  const sideOffset = Math.max(width, depth) * spacing / 2 + 2;
+  
+  return (
+    <group>
+      {/* Movement arrows above the well */}
+      <group position={[centerX, baseY, centerZ]}>
+        {/* A - Left (-X) */}
+        <Arrow
+          position={[-1.5, 0, 0]}
+          rotation={[0, 0, Math.PI / 2]}
+          color="#ef4444"
+          label="A"
+          labelOffset={[-0.5, 0, 0]}
+        />
+        
+        {/* D - Right (+X) */}
+        <Arrow
+          position={[1.5, 0, 0]}
+          rotation={[0, 0, -Math.PI / 2]}
+          color="#22c55e"
+          label="D"
+          labelOffset={[0.5, 0, 0]}
+        />
+        
+        {/* W - Back (+Z) */}
+        <Arrow
+          position={[0, 0, 1.5]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          color="#3b82f6"
+          label="W"
+          labelOffset={[0, 0, 0.5]}
+        />
+        
+        {/* S - Forward (-Z) */}
+        <Arrow
+          position={[0, 0, -1.5]}
+          rotation={[Math.PI / 2, 0, 0]}
+          color="#f59e0b"
+          label="S"
+          labelOffset={[0, 0, -0.5]}
+        />
+        
+        {/* Space - Drop (down) */}
+        <Arrow
+          position={[0, -0.5, 0]}
+          rotation={[Math.PI, 0, 0]}
+          color="#a855f7"
+          label="SPACE"
+          labelOffset={[0, -0.8, 0]}
+        />
+      </group>
+      
+      {/* Rotation indicators on the sides */}
+      {/* Q/E - Y-axis rotation (horizontal spin) - on left side */}
+      <group position={[-sideOffset, height * spacing / 2, centerZ]}>
+        <Text
+          position={[0, 1.5, 0]}
+          fontSize={0.3}
+          color="#e5e7eb"
+          anchorX="center"
+        >
+          ROTATE
+        </Text>
+        <RotationArrow
+          position={[0, 0.5, 0]}
+          axis="Y"
+          color="#06b6d4"
+          label="Q"
+          clockwise={false}
+        />
+        <RotationArrow
+          position={[0, -0.5, 0]}
+          axis="Y"
+          color="#ec4899"
+          label="E"
+          clockwise={true}
+        />
+      </group>
+      
+      {/* Arrow Up/Down - X-axis rotation (flip) - on right side */}
+      <group position={[width * spacing + sideOffset - 1, height * spacing / 2, centerZ]}>
+        <Text
+          position={[0, 1.5, 0]}
+          fontSize={0.3}
+          color="#e5e7eb"
+          anchorX="center"
+        >
+          FLIP
+        </Text>
+        <RotationArrow
+          position={[0, 0.5, 0]}
+          axis="X"
+          color="#84cc16"
+          label="UP"
+          clockwise={true}
+        />
+        <RotationArrow
+          position={[0, -0.5, 0]}
+          axis="X"
+          color="#f97316"
+          label="DOWN"
+          clockwise={false}
+        />
+      </group>
+    </group>
+  );
+};
+
 function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = false }) {
   const config = DIFFICULTY_CONFIG[difficulty];
   const { baseWidth: width, baseDepth: depth, height } = config;
@@ -176,10 +391,6 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
   const lastDropRef = useRef(Date.now());
   const hasStartedRef = useRef(false);
   const softDropRef = useRef(false);
-  
-  // Calculate center offset for rendering
-  const centerX = (width - 1) * spacing / 2;
-  const centerZ = (depth - 1) * spacing / 2;
   
   // Spawn a new piece
   const spawnPiece = useCallback(() => {
@@ -205,12 +416,12 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
     return piece;
   }, [board, width, depth, height, setGameState]);
   
-  // Lock current piece and handle line clears
-  const lockCurrentPiece = useCallback(() => {
-    if (!currentPiece) return;
+  // Lock a specific piece and handle line clears (used by hard drop)
+  const lockPieceDirectly = useCallback((pieceToLock) => {
+    if (!pieceToLock) return;
     
     // Lock piece to board
-    const newBoard = lockPiece(currentPiece, board, height);
+    const newBoard = lockPiece(pieceToLock, board, height);
     
     // Find and clear complete planes
     const completePlanes = findCompletePlanes(newBoard, width, depth, height);
@@ -251,7 +462,12 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
       const newPiece = spawnPiece();
       setCurrentPiece(newPiece);
     }
-  }, [currentPiece, board, width, depth, height, level, linesCleared, setGameState, spawnPiece]);
+  }, [board, width, depth, height, level, linesCleared, setGameState, spawnPiece]);
+
+  // Lock current piece and handle line clears
+  const lockCurrentPiece = useCallback(() => {
+    lockPieceDirectly(currentPiece);
+  }, [currentPiece, lockPieceDirectly]);
   
   // Move piece down (gravity)
   const dropPiece = useCallback(() => {
@@ -330,8 +546,8 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
           const { piece: droppedPiece, distance } = hardDrop(currentPiece, board, width, depth, height);
           setCurrentPiece(droppedPiece);
           setGameState(prev => ({ ...prev, score: prev.score + distance * 2 }));
-          // Lock immediately after hard drop
-          setTimeout(() => lockCurrentPiece(), 50);
+          // Lock immediately after hard drop - pass droppedPiece directly to avoid stale closure
+          lockPieceDirectly(droppedPiece);
           return;
         case 'Shift':
           e.preventDefault();
@@ -359,7 +575,7 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [currentPiece, board, width, depth, height, gameState.isPlaying, gameOver, isPaused, lockCurrentPiece, setGameState]);
+  }, [currentPiece, board, width, depth, height, gameState.isPlaying, gameOver, isPaused, lockCurrentPiece, lockPieceDirectly, setGameState]);
   
   // Game loop - piece gravity
   useFrame(() => {
@@ -493,9 +709,9 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
           <Cube
             key={`locked-${i}`}
             position={[
-              x * spacing - centerX,
+              x * spacing,
               y * spacing,
-              z * spacing - centerZ
+              z * spacing
             ]}
             color={isClearing ? COLORS.clearing : color}
             opacity={isClearing ? 0.5 : 1}
@@ -508,9 +724,9 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
         <Cube
           key={`ghost-${i}`}
           position={[
-            x * spacing - centerX,
+            x * spacing,
             y * spacing,
-            z * spacing - centerZ
+            z * spacing
           ]}
           color={COLORS.ghost}
           opacity={CUBE_CONFIG.ghostOpacity}
@@ -523,9 +739,9 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
         <Cube
           key={`current-${i}`}
           position={[
-            x * spacing - centerX,
+            x * spacing,
             y * spacing,
-            z * spacing - centerZ
+            z * spacing
           ]}
           color={currentPiece?.color || '#ffffff'}
           opacity={CUBE_CONFIG.activeOpacity}
@@ -536,6 +752,14 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
       <NextPiecePreview 
         pieceType={nextPieceRef.current}
         position={[width * spacing + 2, height * spacing / 2, 0]}
+      />
+      
+      {/* Direction indicators */}
+      <DirectionIndicators
+        width={width}
+        depth={depth}
+        height={height}
+        spacing={spacing}
       />
       
       {/* Game over text */}
