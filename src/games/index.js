@@ -9,6 +9,7 @@
 import './minesweeper';
 import './connectfour';
 import './crossword3d';
+import './sudoku3d';
 import './tetris';
 
 // Re-export registry functions for convenience

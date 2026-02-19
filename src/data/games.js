@@ -120,6 +120,18 @@ export const games = [
     path: '/games/crossword-3d',
     tags: ['puzzle', '3d', 'word', 'crossword', 'strategy'],
     published: true
+  },
+  {
+    id: 'sudoku-3d',
+    title: '3D Sudoku',
+    description: 'Fill the 9×9×9 grid so each color layer is a valid Sudoku and each column through the layers contains 1–9 once. Nine colors, one per layer.',
+    genre: 'Puzzle',
+    difficulty: 'Medium',
+    playTime: '10-30 min',
+    image: '/images/sudoku-3d.jpg',
+    path: '/games/sudoku-3d',
+    tags: ['puzzle', '3d', 'sudoku', 'logic', 'numbers'],
+    published: true
   }
 ];
 

@@ -110,7 +110,7 @@ const PlaceholderScene = ({ gameId }) => {
   );
 };
 
-const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOptions, hintFunctionRef, checkFunctionRef, onWordSelected }) => {
+const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOptions, hintFunctionRef, checkFunctionRef, digitInputRef, onWordSelected }) => {
   // Try to get the game from registry
   const gameConfig = getGame(gameId);
   
@@ -152,6 +152,10 @@ const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOption
       
       // Tetris
       if (gameOptions.isPaused !== undefined) gameProps.isPaused = gameOptions.isPaused;
+
+      // 3D Sudoku
+      if (gameOptions.difficulty !== undefined) gameProps.difficulty = gameOptions.difficulty;
+      if (digitInputRef) gameProps.digitInputRef = digitInputRef;
     }
     
     return <GameComponent {...gameProps} />;

@@ -22,6 +22,7 @@ const GamePage = () => {
   const [hintButtonRed, setHintButtonRed] = useState(false);
   const hintFunctionRef = useRef(null);
   const checkFunctionRef = useRef(null);
+  const digitInputRef = useRef(null);
   const [selectedWordInfo, setSelectedWordInfo] = useState(null);
   
   // Get game config from registry
@@ -236,6 +237,26 @@ const GamePage = () => {
         linesCleared: gameState.linesCleared || 0
       });
     }
+
+    // 3D Sudoku controls
+    if (gameId === 'sudoku-3d') {
+      Object.assign(controlProps, {
+        difficulty: gameOptions.difficulty || 'Medium',
+        onDifficultyChange: (d) => {
+          updateGameOption('difficulty', d);
+          setGameState(prev => ({ ...prev, isPlaying: false }));
+          setTimeout(() => setGameState(prev => ({ ...prev, isPlaying: true })), 0);
+        },
+        onNewGame: () => {
+          setGameState(prev => ({ ...prev, isPlaying: false }));
+          setTimeout(() => setGameState(prev => ({ ...prev, isPlaying: true })), 0);
+        },
+        onHint: handleHint,
+        onCheck: handleCheck,
+        onNumberInput: (digit) => digitInputRef.current?.placeDigit?.(digit),
+        onClear: () => digitInputRef.current?.clearCell?.()
+      });
+    }
     
     return <ControlsComponent {...controlProps} />;
   };
@@ -346,6 +367,7 @@ const GamePage = () => {
                 setGameOptions={setGameOptions}
                 hintFunctionRef={hintFunctionRef} 
                 checkFunctionRef={checkFunctionRef}
+                digitInputRef={digitInputRef}
                 onWordSelected={gameId === 'crossword-3d' ? handleWordSelected : undefined}
               />
               <OrbitControls enableZoom={cameraConfig.enableZoom} />
