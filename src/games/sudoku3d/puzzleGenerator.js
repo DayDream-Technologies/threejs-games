@@ -59,31 +59,39 @@ function shuffle(arr) {
 }
 
 /**
- * Fill grid with a valid 9×9×9 solution via backtracking.
- * Order: layer 0..8, row 0..8, col 0..8. Tries digits 1..9 in random order.
+ * Fill grid with a valid 9×9×9 solution via iterative backtracking.
+ * Uses position index 0..728 to avoid recursion and stack overflow.
  */
 function fillGrid(grid) {
   const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  for (let layer = 0; layer < SIZE; layer++) {
-    for (let row = 0; row < SIZE; row++) {
-      for (let col = 0; col < SIZE; col++) {
-        shuffle(digits);
-        let placed = false;
-        for (const d of digits) {
-          if (canPlace(grid, layer, row, col, d)) {
-            grid[layer][row][col] = d;
-            if (fillGrid(grid)) {
-              placed = true;
-              break;
-            }
-            grid[layer][row][col] = 0;
-          }
-        }
-        if (!placed) return false;
+  shuffle(digits);
+  const nextTried = new Array(SIZE * SIZE * SIZE).fill(0);
+  let k = 0;
+
+  while (k >= 0) {
+    if (k >= SIZE * SIZE * SIZE) return true;
+    const layer = Math.floor(k / 81);
+    const row = Math.floor((k % 81) / 9);
+    const col = k % 9;
+
+    let placed = false;
+    for (let i = nextTried[k]; i < SIZE; i++) {
+      const d = digits[i];
+      if (canPlace(grid, layer, row, col, d)) {
+        grid[layer][row][col] = d;
+        nextTried[k] = i + 1;
+        k++;
+        placed = true;
+        break;
       }
     }
+    if (!placed) {
+      nextTried[k] = 0;
+      grid[layer][row][col] = 0;
+      k--;
+    }
   }
-  return true;
+  return false;
 }
 
 /**
