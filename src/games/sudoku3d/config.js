@@ -29,7 +29,7 @@ export const DIFFICULTY_CONFIG = {
 
 export const BOARD_CONFIG = {
   size: 9,
-  spacing: 0.95,
+  spacing: 1.05,
   cellSize: 0.82,
   layerSpacing: 1.35,
   edgeColor: '#ffffff'

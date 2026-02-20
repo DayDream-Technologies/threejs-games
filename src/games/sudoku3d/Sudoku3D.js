@@ -10,7 +10,7 @@ import {
   isCellCompleted
 } from './sudokuValidation';
 
-const { size: SIZE, spacing, cellSize, layerSpacing, edgeColor } = BOARD_CONFIG;
+const { size: SIZE, spacing, cellSize, layerSpacing } = BOARD_CONFIG;
 const cubeSize = cellSize;
 const textOffset = cubeSize / 2 + 0.01;
 const offset = (SIZE - 1) * spacing * 0.5;
@@ -324,6 +324,7 @@ function Sudoku3D({
       {/* All 9 layers stacked along Z (or only viewOnlyLayer when set) */}
       {layersToRender.map((layer) => {
         const z = layer * layerSpacing - layerOffset;
+        const layerColor = LAYER_COLORS[layer] || '#888';
         return (
           <group key={layer} position={[0, 0, z]}>
             {Array.from({ length: SIZE }, (_, row) =>
@@ -353,6 +354,7 @@ function Sudoku3D({
                 else if (isSectionComplete) cellColor = '#86efac';
                 else if (isHighlightSame) cellColor = '#bfdbfe';
                 else if (isConstraint) cellColor = '#dbeafe';
+                const edgeColorForCell = isSelected ? '#2563eb' : layerColor;
                 const digitColor = isWrong
                   ? '#ffffff'
                   : isConflict
@@ -371,7 +373,7 @@ function Sudoku3D({
                       onPointerMove={onPointerMove}
                     >
                       <meshStandardMaterial color={cellColor} />
-                      <Edges scale={1.001} color={isSelected ? '#2563eb' : (edgeColor || '#ffffff')} threshold={15} />
+                      <Edges scale={1.001} color={edgeColorForCell} threshold={15} />
                     </Box>
                     {isConstraint && !isSelected && !isWrong && !isConflict && (
                       <Box args={[cubeSize * 1.02, cubeSize * 1.02, cubeSize * 1.02]} position={[0, 0, 0]}>
@@ -380,12 +382,12 @@ function Sudoku3D({
                     )}
                     {val !== 0 ? (
                       <>
-                        <Text raycast={null} position={[0, 0, textOffset]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
-                        <Text raycast={null} position={[0, 0, -textOffset]} rotation={[0, Math.PI, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
-                        <Text raycast={null} position={[textOffset, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
-                        <Text raycast={null} position={[-textOffset, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
-                        <Text raycast={null} position={[0, textOffset, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
-                        <Text raycast={null} position={[0, -textOffset, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, 0, textOffset]} fontSize={0.25} fontWeight="bold" color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, 0, -textOffset]} rotation={[0, Math.PI, 0]} fontSize={0.25} fontWeight="bold" color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[textOffset, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.25} fontWeight="bold" color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[-textOffset, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.25} fontWeight="bold" color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, textOffset, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.25} fontWeight="bold" color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, -textOffset, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.25} fontWeight="bold" color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
                       </>
                     ) : hasNotes ? (
                       <group raycast={null} position={[0, 0, textOffset]}>
@@ -400,6 +402,7 @@ function Sudoku3D({
                               key={n}
                               position={[nx, ny, 0]}
                               fontSize={0.12}
+                              fontWeight="bold"
                               color={isSelected ? '#1e3a5f' : '#0d9488'}
                               anchorX="center"
                               anchorY="middle"
@@ -422,6 +425,7 @@ function Sudoku3D({
       <Text
         position={[0, offset + 0.5, layerOffset + 0.5]}
         fontSize={0.28}
+        fontWeight="bold"
         color={LAYER_COLORS[selectedLayer] || '#888'}
         anchorX="center"
         anchorY="middle"
@@ -433,6 +437,7 @@ function Sudoku3D({
         <Text
           position={[0, 0, 0]}
           fontSize={0.5}
+          fontWeight="bold"
           color="#10b981"
           anchorX="center"
           anchorY="middle"

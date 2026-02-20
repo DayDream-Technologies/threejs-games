@@ -41,14 +41,16 @@ const SudokuControls = ({
             type="button"
             className="instructions-button"
             style={{
-              width: 28,
-              height: 28,
-              minWidth: 28,
+              width: 30,
+              height: 30,
+              minWidth: 30,
               padding: 0,
-              margin: '2px',
+              margin: '3px',
               backgroundColor: color,
-              border: viewOnlyLayer === i ? '3px solid #1f2937' : '2px solid #9ca3af',
-              borderRadius: 4
+              border: viewOnlyLayer === i ? `3px solid #1f2937` : `2px solid ${color}`,
+              boxShadow: viewOnlyLayer === i ? `0 0 0 1px ${color}` : 'none',
+              borderRadius: 4,
+              opacity: viewOnlyLayer != null && viewOnlyLayer !== i ? 0.5 : 1
             }}
             onClick={() => onLayerClick && onLayerClick(i)}
             title={viewOnlyLayer === i ? `Layer ${i + 1} (click to show all)` : `Show only layer ${i + 1}`}
