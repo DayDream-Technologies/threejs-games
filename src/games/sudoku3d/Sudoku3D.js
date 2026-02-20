@@ -324,7 +324,6 @@ function Sudoku3D({
       {/* All 9 layers stacked along Z (or only viewOnlyLayer when set) */}
       {layersToRender.map((layer) => {
         const z = layer * layerSpacing - layerOffset;
-        const layerColor = LAYER_COLORS[layer] || '#888';
         return (
           <group key={layer} position={[0, 0, z]}>
             {Array.from({ length: SIZE }, (_, row) =>
