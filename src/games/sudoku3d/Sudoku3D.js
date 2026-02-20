@@ -33,7 +33,7 @@ function Sudoku3D({
   );
   const [selectedLayer, setSelectedLayer] = useState(0);
   const [selectedCell, setSelectedCell] = useState(null);
-  const [errorCells, setErrorCells] = useState(new Set());
+  const errorCells = useMemo(() => getConflictCells(grid), [grid]);
   const isDraggingRef = useRef(false);
   const pointerDownRef = useRef([0, 0]);
   const DRAG_THRESHOLD = 6;
@@ -45,7 +45,6 @@ function Sudoku3D({
     setSolution(newSolution);
     setSelectedLayer(0);
     setSelectedCell(null);
-    setErrorCells(new Set());
     setGameState((prev) => ({ ...prev, gameWon: false, gameLost: false }));
   }, [difficulty, setGameState]);
 
@@ -65,7 +64,6 @@ function Sudoku3D({
         next[selectedLayer][row][col] = digit;
         return next;
       });
-      setErrorCells(new Set());
     },
     [selectedCell, selectedLayer, givens]
   );
@@ -79,7 +77,6 @@ function Sudoku3D({
       next[selectedLayer][row][col] = 0;
       return next;
     });
-    setErrorCells(new Set());
   }, [selectedCell, selectedLayer, givens]);
 
   useEffect(() => {
@@ -109,7 +106,6 @@ function Sudoku3D({
     });
     setSelectedLayer(l);
     setSelectedCell({ row: r, col: c });
-    setErrorCells(new Set());
     return true;
   }, [grid, givens, solution]);
 
@@ -164,8 +160,8 @@ function Sudoku3D({
   }, [gameState.isPlaying, gameState.gameWon, placeDigit, clearCell]);
 
   const doCheck = useCallback(() => {
-    setErrorCells(getConflictCells(grid));
-  }, [grid]);
+    // Conflicts are now shown automatically via errorCells derived from grid
+  }, []);
 
   useEffect(() => {
     if (hintFunctionRef) hintFunctionRef.current = doHint;
@@ -255,16 +251,29 @@ function Sudoku3D({
                       </Box>
                     )}
                     {val !== 0 && (
-                      <Text
-                        raycast={null}
-                        position={[0, 0, 0.04]}
-                        fontSize={0.28}
-                        color={isGiven ? '#111827' : '#1d4ed8'}
-                        anchorX="center"
-                        anchorY="middle"
-                      >
-                        {String(val)}
-                      </Text>
+                      <>
+                        <Text
+                          raycast={null}
+                          position={[0, 0, 0.04]}
+                          fontSize={0.28}
+                          color={isError ? '#ffffff' : isGiven ? '#111827' : '#1d4ed8'}
+                          anchorX="center"
+                          anchorY="middle"
+                        >
+                          {String(val)}
+                        </Text>
+                        <Text
+                          raycast={null}
+                          position={[0, 0, -0.04]}
+                          rotation={[0, Math.PI, 0]}
+                          fontSize={0.28}
+                          color={isError ? '#ffffff' : isGiven ? '#111827' : '#1d4ed8'}
+                          anchorX="center"
+                          anchorY="middle"
+                        >
+                          {String(val)}
+                        </Text>
+                      </>
                     )}
                   </group>
                 );
