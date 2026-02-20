@@ -10,9 +10,9 @@ import {
   isCellCompleted
 } from './sudokuValidation';
 
-const { size: SIZE, spacing, cellSize, cellDepth, layerSpacing } = BOARD_CONFIG;
-const half = (cellDepth ?? 0.5) / 2;
-const textOffset = half + 0.02;
+const { size: SIZE, spacing, cellSize, layerSpacing, edgeColor } = BOARD_CONFIG;
+const cubeSize = cellSize;
+const textOffset = cubeSize / 2 + 0.01;
 const offset = (SIZE - 1) * spacing * 0.5;
 const layerOffset = (SIZE - 1) * layerSpacing * 0.5;
 
@@ -363,51 +363,31 @@ function Sudoku3D({
                       : '#0d9488';
                 const cellNotes = notes[layer][row][col];
                 const hasNotes = cellNotes && cellNotes.size > 0;
-                const boxArgs = [cellSize, cellSize, cellDepth ?? 0.5];
-                const textFaces = [
-                  { pos: [0, 0, textOffset], rot: [0, 0, 0] },
-                  { pos: [0, 0, -textOffset], rot: [0, Math.PI, 0] },
-                  { pos: [textOffset, 0, 0], rot: [0, -Math.PI / 2, 0] },
-                  { pos: [-textOffset, 0, 0], rot: [0, Math.PI / 2, 0] },
-                  { pos: [0, textOffset, 0], rot: [-Math.PI / 2, 0, 0] },
-                  { pos: [0, -textOffset, 0], rot: [Math.PI / 2, 0, 0] }
-                ];
-                const fontSize = 0.22;
                 return (
                   <group key={cellKey} position={[px, py, 0]}>
                     <Box
-                      args={boxArgs}
+                      args={[cubeSize, cubeSize, cubeSize]}
                       onClick={(e) => onCellClick(e, layer, row, col)}
                       onPointerDown={onPointerDown}
                       onPointerMove={onPointerMove}
                     >
                       <meshStandardMaterial color={cellColor} />
-                      <Edges
-                        scale={1.02}
-                        color={isSelected ? '#2563eb' : layerColor}
-                        threshold={15}
-                      />
+                      <Edges scale={1.001} color={isSelected ? '#2563eb' : (edgeColor || '#ffffff')} threshold={15} />
                     </Box>
                     {isConstraint && !isSelected && !isWrong && !isConflict && (
-                      <Box args={[cellSize * 1.02, cellSize * 1.02, (cellDepth ?? 0.5) * 1.02]} position={[0, 0, 0]}>
+                      <Box args={[cubeSize * 1.02, cubeSize * 1.02, cubeSize * 1.02]} position={[0, 0, 0]}>
                         <meshBasicMaterial color="#3b82f6" transparent opacity={0.2} />
                       </Box>
                     )}
                     {val !== 0 ? (
-                      textFaces.map((face, fi) => (
-                        <Text
-                          key={fi}
-                          raycast={null}
-                          position={face.pos}
-                          rotation={face.rot}
-                          fontSize={fontSize}
-                          color={digitColor}
-                          anchorX="center"
-                          anchorY="middle"
-                        >
-                          {String(val)}
-                        </Text>
-                      ))
+                      <>
+                        <Text raycast={null} position={[0, 0, textOffset]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, 0, -textOffset]} rotation={[0, Math.PI, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[textOffset, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[-textOffset, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, textOffset, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                        <Text raycast={null} position={[0, -textOffset, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.25} color={digitColor} anchorX="center" anchorY="middle">{String(val)}</Text>
+                      </>
                     ) : hasNotes ? (
                       <group raycast={null} position={[0, 0, textOffset]}>
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {

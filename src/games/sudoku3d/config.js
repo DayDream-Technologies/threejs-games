@@ -31,8 +31,8 @@ export const BOARD_CONFIG = {
   size: 9,
   spacing: 0.95,
   cellSize: 0.82,
-  cellDepth: 0.5,
-  layerSpacing: 1.35
+  layerSpacing: 1.35,
+  edgeColor: '#ffffff'
 };
 
 export const getCameraPosition = (difficulty = 'Medium') => {
