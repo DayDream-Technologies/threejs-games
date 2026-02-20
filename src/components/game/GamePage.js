@@ -262,7 +262,12 @@ const GamePage = () => {
         mistakes: gameState.mistakes ?? 0,
         consecutiveMistakes: gameState.consecutiveMistakes ?? 0,
         showHint: (gameState.consecutiveMistakes ?? 0) >= 3,
-        completedDigits: gameState.completedDigits || []
+        completedDigits: gameState.completedDigits || [],
+        viewOnlyLayer: gameOptions.viewOnlyLayer ?? null,
+        onLayerClick: (layerIndex) => {
+          const current = gameOptions.viewOnlyLayer;
+          updateGameOption('viewOnlyLayer', layerIndex === null ? null : (current === layerIndex ? null : layerIndex));
+        }
       });
     }
     

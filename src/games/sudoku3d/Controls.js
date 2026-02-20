@@ -1,10 +1,11 @@
 /**
  * 3D Sudoku Controls
  *
- * Difficulty, New Game, Hint, Check, and number input 1–9 + Clear.
+ * Difficulty, New Game, Hint, Check, layer navigation, and number input 1–9 + Clear.
  */
 
 import React from 'react';
+import { LAYER_COLORS } from './config';
 
 const SudokuControls = ({
   difficulty,
@@ -21,6 +22,8 @@ const SudokuControls = ({
   mistakes,
   showHint,
   completedDigits,
+  viewOnlyLayer,
+  onLayerClick,
   isPlaying,
   hintButtonRed
 }) => {
@@ -28,8 +31,40 @@ const SudokuControls = ({
   return (
     <div className="game-extra-controls">
       <p className="sudoku-layer-hint" style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '10px', maxWidth: '320px' }}>
-        Full 3D grid: orbit to see all 9 layers. Click a cell to select; use <strong>arrow keys</strong> to move, <strong>Page Up/Down</strong> to change layer. Wrong = red, conflict = orange. Hint after 3 mistakes (+2 penalty).
+        Click a layer below to show only that 2D plane; click again to show all. Use <strong>arrow keys</strong> and <strong>Page Up/Down</strong>. Wrong = red, conflict = orange.
       </p>
+      <div style={{ marginBottom: '10px' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, marginRight: '8px' }}>Layers:</span>
+        {(LAYER_COLORS || []).map((color, i) => (
+          <button
+            key={i}
+            type="button"
+            className="instructions-button"
+            style={{
+              width: 28,
+              height: 28,
+              minWidth: 28,
+              padding: 0,
+              margin: '2px',
+              backgroundColor: color,
+              border: viewOnlyLayer === i ? '3px solid #1f2937' : '2px solid #9ca3af',
+              borderRadius: 4
+            }}
+            onClick={() => onLayerClick && onLayerClick(i)}
+            title={viewOnlyLayer === i ? `Layer ${i + 1} (click to show all)` : `Show only layer ${i + 1}`}
+          />
+        ))}
+        {viewOnlyLayer != null && (
+          <button
+            type="button"
+            className="instructions-button"
+            style={{ marginLeft: '6px', fontSize: '0.75rem' }}
+            onClick={() => onLayerClick && onLayerClick(null)}
+          >
+            Show all
+          </button>
+        )}
+      </div>
       <div className="difficulty-control">
         <label htmlFor="sudoku-difficulty" className="difficulty-label">Difficulty:</label>
         <select

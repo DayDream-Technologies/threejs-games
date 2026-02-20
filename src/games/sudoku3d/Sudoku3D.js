@@ -10,7 +10,9 @@ import {
   isCellCompleted
 } from './sudokuValidation';
 
-const { size: SIZE, spacing, cellSize, layerSpacing } = BOARD_CONFIG;
+const { size: SIZE, spacing, cellSize, cellDepth, layerSpacing } = BOARD_CONFIG;
+const half = (cellDepth ?? 0.5) / 2;
+const textOffset = half + 0.02;
 const offset = (SIZE - 1) * spacing * 0.5;
 const layerOffset = (SIZE - 1) * layerSpacing * 0.5;
 
@@ -22,7 +24,8 @@ function Sudoku3D({
   checkFunctionRef,
   digitInputRef,
   hideCompletedCells = false,
-  notesMode = false
+  notesMode = false,
+  viewOnlyLayer = null
 }) {
   const [grid, setGrid] = useState(() =>
     Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => Array(9).fill(0)))
@@ -77,6 +80,12 @@ function Sudoku3D({
       loadNewPuzzle();
     }
   }, [gameState.isPlaying, loadNewPuzzle]);
+
+  useEffect(() => {
+    if (viewOnlyLayer != null && viewOnlyLayer >= 0 && viewOnlyLayer <= 8) {
+      setSelectedLayer(viewOnlyLayer);
+    }
+  }, [viewOnlyLayer]);
 
   const placeDigit = useCallback(
     (digit) => {
@@ -308,10 +317,12 @@ function Sudoku3D({
     );
   }, []);
 
+  const layersToRender = viewOnlyLayer != null ? [viewOnlyLayer] : Array.from({ length: SIZE }, (_, i) => i);
+
   return (
     <group>
-      {/* All 9 layers stacked along Z */}
-      {Array.from({ length: SIZE }, (_, layer) => {
+      {/* All 9 layers stacked along Z (or only viewOnlyLayer when set) */}
+      {layersToRender.map((layer) => {
         const z = layer * layerSpacing - layerOffset;
         const layerColor = LAYER_COLORS[layer] || '#888';
         return (
@@ -352,10 +363,20 @@ function Sudoku3D({
                       : '#0d9488';
                 const cellNotes = notes[layer][row][col];
                 const hasNotes = cellNotes && cellNotes.size > 0;
+                const boxArgs = [cellSize, cellSize, cellDepth ?? 0.5];
+                const textFaces = [
+                  { pos: [0, 0, textOffset], rot: [0, 0, 0] },
+                  { pos: [0, 0, -textOffset], rot: [0, Math.PI, 0] },
+                  { pos: [textOffset, 0, 0], rot: [0, -Math.PI / 2, 0] },
+                  { pos: [-textOffset, 0, 0], rot: [0, Math.PI / 2, 0] },
+                  { pos: [0, textOffset, 0], rot: [-Math.PI / 2, 0, 0] },
+                  { pos: [0, -textOffset, 0], rot: [Math.PI / 2, 0, 0] }
+                ];
+                const fontSize = 0.22;
                 return (
                   <group key={cellKey} position={[px, py, 0]}>
                     <Box
-                      args={[cellSize, cellSize, 0.06]}
+                      args={boxArgs}
                       onClick={(e) => onCellClick(e, layer, row, col)}
                       onPointerDown={onPointerDown}
                       onPointerMove={onPointerMove}
@@ -368,47 +389,38 @@ function Sudoku3D({
                       />
                     </Box>
                     {isConstraint && !isSelected && !isWrong && !isConflict && (
-                      <Box args={[cellSize * 1.02, cellSize * 1.02, 0.065]} position={[0, 0, 0.001]}>
+                      <Box args={[cellSize * 1.02, cellSize * 1.02, (cellDepth ?? 0.5) * 1.02]} position={[0, 0, 0]}>
                         <meshBasicMaterial color="#3b82f6" transparent opacity={0.2} />
                       </Box>
                     )}
                     {val !== 0 ? (
-                      <>
+                      textFaces.map((face, fi) => (
                         <Text
+                          key={fi}
                           raycast={null}
-                          position={[0, 0, 0.04]}
-                          fontSize={0.28}
+                          position={face.pos}
+                          rotation={face.rot}
+                          fontSize={fontSize}
                           color={digitColor}
                           anchorX="center"
                           anchorY="middle"
                         >
                           {String(val)}
                         </Text>
-                        <Text
-                          raycast={null}
-                          position={[0, 0, -0.04]}
-                          rotation={[0, Math.PI, 0]}
-                          fontSize={0.28}
-                          color={digitColor}
-                          anchorX="center"
-                          anchorY="middle"
-                        >
-                          {String(val)}
-                        </Text>
-                      </>
+                      ))
                     ) : hasNotes ? (
-                      <group raycast={null} position={[0, 0, 0.04]}>
+                      <group raycast={null} position={[0, 0, textOffset]}>
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
                           if (!cellNotes.has(n)) return null;
                           const rn = Math.floor((n - 1) / 3);
                           const cn = (n - 1) % 3;
-                          const nx = (cn - 1) * 0.12;
-                          const ny = (1 - rn) * 0.12;
+                          const nx = (cn - 1) * 0.1;
+                          const ny = (1 - rn) * 0.1;
                           return (
                             <Text
                               key={n}
                               position={[nx, ny, 0]}
-                              fontSize={0.14}
+                              fontSize={0.12}
                               color={isSelected ? '#1e3a5f' : '#0d9488'}
                               anchorX="center"
                               anchorY="middle"

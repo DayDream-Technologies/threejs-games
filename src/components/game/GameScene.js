@@ -158,6 +158,7 @@ const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOption
       if (digitInputRef) gameProps.digitInputRef = digitInputRef;
       if (gameOptions.hideCompletedCells !== undefined) gameProps.hideCompletedCells = gameOptions.hideCompletedCells;
       if (gameOptions.notesMode !== undefined) gameProps.notesMode = gameOptions.notesMode;
+      if (gameOptions.viewOnlyLayer !== undefined) gameProps.viewOnlyLayer = gameOptions.viewOnlyLayer;
     }
     
     return <GameComponent {...gameProps} />;

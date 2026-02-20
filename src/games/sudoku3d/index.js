@@ -35,7 +35,8 @@ const sudokuConfig = {
   getDefaultOptions: () => ({
     difficulty: 'Medium',
     hideCompletedCells: false,
-    notesMode: false
+    notesMode: false,
+    viewOnlyLayer: null
   })
 };
 
