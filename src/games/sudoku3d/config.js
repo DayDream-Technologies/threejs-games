@@ -26,13 +26,13 @@ export const DIFFICULTY_CONFIG = {
 
 export const BOARD_CONFIG = {
   size: 9,
-  spacing: 0.65,
-  cellSize: 0.55,
-  layerSpacing: 0.1
+  spacing: 0.55,
+  cellSize: 0.48,
+  layerSpacing: 0.9
 };
 
 export const getCameraPosition = (difficulty = 'Medium') => {
-  return [6, 6, 10];
+  return [8, 8, 14];
 };
 
 export const getGivenRatio = (difficulty = 'Medium') => {

@@ -24,13 +24,14 @@ const sudokuConfig = {
   getDefaultState: () => ({
     ...createDefaultGameState(),
     level: 'Medium',
-    isPlaying: false,
+    isPlaying: true,
     gameWon: false,
     gameLost: false
   }),
 
   getDefaultOptions: () => ({
-    difficulty: 'Medium'
+    difficulty: 'Medium',
+    hideCompletedCells: false
   })
 };
 

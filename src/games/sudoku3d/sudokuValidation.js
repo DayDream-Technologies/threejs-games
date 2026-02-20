@@ -88,3 +88,37 @@ export function isGridValid(grid) {
   }
   return getConflictCells(grid).size === 0;
 }
+
+const key = (l, r, c) => `${l},${r},${c}`;
+
+/**
+ * Get set of cell keys that constrain (layer, row, col): same row, column, 3×3 box in layer, and tower.
+ * @returns {Set<string>}
+ */
+export function getConstraintCells(layer, row, col) {
+  const set = new Set();
+  for (let c = 0; c < SIZE; c++) set.add(key(layer, row, c));
+  for (let r = 0; r < SIZE; r++) set.add(key(layer, r, col));
+  const br = Math.floor(row / BOX) * BOX;
+  const bc = Math.floor(col / BOX) * BOX;
+  for (let r = br; r < br + BOX; r++) {
+    for (let c = bc; c < bc + BOX; c++) set.add(key(layer, r, c));
+  }
+  for (let l = 0; l < SIZE; l++) set.add(key(l, row, col));
+  return set;
+}
+
+/**
+ * True if cell is filled and its row, column, and 3×3 box (in that layer) are all full.
+ */
+export function isCellCompleted(grid, layer, row, col) {
+  if (grid[layer][row][col] === 0) return false;
+  for (let c = 0; c < SIZE; c++) if (grid[layer][row][c] === 0) return false;
+  for (let r = 0; r < SIZE; r++) if (grid[layer][r][col] === 0) return false;
+  const br = Math.floor(row / BOX) * BOX;
+  const bc = Math.floor(col / BOX) * BOX;
+  for (let r = br; r < br + BOX; r++) {
+    for (let c = bc; c < bc + BOX; c++) if (grid[layer][r][c] === 0) return false;
+  }
+  return true;
+}

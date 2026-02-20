@@ -156,6 +156,7 @@ const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOption
       // 3D Sudoku
       if (gameOptions.difficulty !== undefined) gameProps.difficulty = gameOptions.difficulty;
       if (digitInputRef) gameProps.digitInputRef = digitInputRef;
+      if (gameOptions.hideCompletedCells !== undefined) gameProps.hideCompletedCells = gameOptions.hideCompletedCells;
     }
     
     return <GameComponent {...gameProps} />;

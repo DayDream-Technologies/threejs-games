@@ -254,7 +254,9 @@ const GamePage = () => {
         onHint: handleHint,
         onCheck: handleCheck,
         onNumberInput: (digit) => digitInputRef.current?.placeDigit?.(digit),
-        onClear: () => digitInputRef.current?.clearCell?.()
+        onClear: () => digitInputRef.current?.clearCell?.(),
+        hideCompletedCells: gameOptions.hideCompletedCells || false,
+        onHideCompletedToggle: () => updateGameOption('hideCompletedCells', !gameOptions.hideCompletedCells)
       });
     }
     

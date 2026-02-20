@@ -14,13 +14,15 @@ const SudokuControls = ({
   onCheck,
   onNumberInput,
   onClear,
+  hideCompletedCells,
+  onHideCompletedToggle,
   isPlaying,
   hintButtonRed
 }) => {
   return (
     <div className="game-extra-controls">
-      <p className="sudoku-layer-hint" style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '10px', maxWidth: '280px' }}>
-        Use the <strong>color bar</strong> below the board in the 3D scene to switch between the 9 layers. Only one layer is visible at a time. Click a cell, then type 1–9 or use the buttons below.
+      <p className="sudoku-layer-hint" style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '10px', maxWidth: '320px' }}>
+        Full 3D grid: orbit to see all 9 layers. Click a cell to select; use <strong>arrow keys</strong> to move, <strong>Page Up/Down</strong> to change layer. Type 1–9 or use the number pad.
       </p>
       <div className="difficulty-control">
         <label htmlFor="sudoku-difficulty" className="difficulty-label">Difficulty:</label>
@@ -59,6 +61,15 @@ const SudokuControls = ({
       >
         Check
       </button>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          checked={!!hideCompletedCells}
+          onChange={() => onHideCompletedToggle && onHideCompletedToggle()}
+        />
+        <span>Hide completed cells</span>
+      </label>
 
       <div className="sudoku-number-pad" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', maxWidth: '180px' }}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (

@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Box, Text, Edges } from '@react-three/drei';
 import { LAYER_COLORS, BOARD_CONFIG } from './config';
 import { generatePuzzle } from './puzzleGenerator';
-import { getConflictCells, isGridValid } from './sudokuValidation';
+import {
+  getConflictCells,
+  isGridValid,
+  getConstraintCells,
+  isCellCompleted
+} from './sudokuValidation';
 
-const { size: SIZE, spacing, cellSize } = BOARD_CONFIG;
+const { size: SIZE, spacing, cellSize, layerSpacing } = BOARD_CONFIG;
 const offset = (SIZE - 1) * spacing * 0.5;
+const layerOffset = (SIZE - 1) * layerSpacing * 0.5;
 
 function Sudoku3D({
   gameState,
@@ -13,7 +19,8 @@ function Sudoku3D({
   difficulty = 'Medium',
   hintFunctionRef,
   checkFunctionRef,
-  digitInputRef
+  digitInputRef,
+  hideCompletedCells = false
 }) {
   const [grid, setGrid] = useState(() =>
     Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => Array(9).fill(0)))
@@ -56,14 +63,11 @@ function Sudoku3D({
       setGrid((prev) => {
         const next = prev.map((layer) => layer.map((row) => [...row]));
         next[selectedLayer][row][col] = digit;
-        if (isGridValid(next)) {
-          setGameState((gs) => ({ ...gs, gameWon: true }));
-        }
         return next;
       });
       setErrorCells(new Set());
     },
-    [selectedCell, selectedLayer, givens, setGameState]
+    [selectedCell, selectedLayer, givens]
   );
 
   const clearCell = useCallback(() => {
@@ -116,6 +120,11 @@ function Sudoku3D({
     }
   }, [grid, gameState.gameWon, setGameState]);
 
+  const constraintSet = useMemo(() => {
+    if (selectedCell == null) return new Set();
+    return getConstraintCells(selectedLayer, selectedCell.row, selectedCell.col);
+  }, [selectedLayer, selectedCell]);
+
   useEffect(() => {
     const onKeyDown = (e) => {
       if (!gameState.isPlaying || gameState.gameWon) return;
@@ -128,14 +137,34 @@ function Sudoku3D({
         e.preventDefault();
         clearCell();
       }
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        setSelectedCell((prev) => {
+          const row = prev ? prev.row : 0;
+          const col = prev ? prev.col : 0;
+          let nr = row;
+          let nc = col;
+          if (e.key === 'ArrowUp') nr = Math.max(0, row - 1);
+          if (e.key === 'ArrowDown') nr = Math.min(8, row + 1);
+          if (e.key === 'ArrowLeft') nc = Math.max(0, col - 1);
+          if (e.key === 'ArrowRight') nc = Math.min(8, col + 1);
+          return { row: nr, col: nc };
+        });
+      }
+      if (e.key === 'PageUp' || e.key === 'PageDown') {
+        e.preventDefault();
+        setSelectedLayer((prev) => {
+          if (e.key === 'PageUp') return Math.min(8, prev + 1);
+          return Math.max(0, prev - 1);
+        });
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [gameState.isPlaying, gameState.gameWon, placeDigit, clearCell]);
 
   const doCheck = useCallback(() => {
-    const conflicts = getConflictCells(grid);
-    setErrorCells(conflicts);
+    setErrorCells(getConflictCells(grid));
   }, [grid]);
 
   useEffect(() => {
@@ -152,7 +181,7 @@ function Sudoku3D({
     };
   }, [checkFunctionRef, doCheck]);
 
-  const onPointerDown = useCallback((e, row, col) => {
+  const onPointerDown = useCallback((e) => {
     e.stopPropagation();
     pointerDownRef.current = [e.pointer?.x ?? 0, e.pointer?.y ?? 0];
     isDraggingRef.current = false;
@@ -167,104 +196,89 @@ function Sudoku3D({
     }
   }, []);
 
-  const onCellClick = useCallback(
-    (e, row, col) => {
-      e.stopPropagation();
-      if (isDraggingRef.current) return;
-      if (givens[selectedLayer][row][col]) return;
-      setSelectedCell((prev) =>
-        prev && prev.row === row && prev.col === col ? null : { row, col }
-      );
-    },
-    [selectedLayer, givens]
-  );
-
-  const onLayerClick = useCallback((e, layerIndex) => {
+  const onCellClick = useCallback((e, layer, row, col) => {
     e.stopPropagation();
     if (isDraggingRef.current) return;
-    setSelectedLayer(layerIndex);
+    setSelectedLayer(layer);
+    setSelectedCell((prev) =>
+      prev && prev.row === row && prev.col === col ? null : { row, col }
+    );
   }, []);
-
-  const layerColor = LAYER_COLORS[selectedLayer] || '#888';
 
   return (
     <group>
-      {/* Current layer: 9×9 board */}
-      <group position={[0, 0, 0]}>
-        {Array.from({ length: SIZE }, (_, row) =>
-          Array.from({ length: SIZE }, (_, col) => {
-            const px = col * spacing - offset;
-            const py = (SIZE - 1 - row) * spacing - offset;
-            const val = grid[selectedLayer][row][col];
-            const isGiven = givens[selectedLayer][row][col];
-            const isSelected =
-              selectedCell && selectedCell.row === row && selectedCell.col === col;
-            const errKey = `${selectedLayer},${row},${col}`;
-            const isError = errorCells.has(errKey);
-            const cellColor = isError
-              ? '#ef4444'
-              : isSelected
-                ? '#fbbf24'
-                : isGiven
-                  ? '#e5e7eb'
-                  : '#f9fafb';
-            return (
-              <group key={`${row}-${col}`} position={[px, py, 0]}>
-                <Box
-                  args={[cellSize, cellSize, 0.08]}
-                  onClick={(e) => onCellClick(e, row, col)}
-                  onPointerDown={(e) => onPointerDown(e, row, col)}
-                  onPointerMove={onPointerMove}
-                >
-                  <meshStandardMaterial color={cellColor} />
-                  <Edges scale={1.02} color={layerColor} threshold={15} />
-                </Box>
-                {val !== 0 && (
-                  <Text
-                    raycast={null}
-                    position={[0, 0, 0.05]}
-                    fontSize={0.35}
-                    color={isGiven ? '#111827' : '#1d4ed8'}
-                    anchorX="center"
-                    anchorY="middle"
-                  >
-                    {String(val)}
-                  </Text>
-                )}
-              </group>
-            );
-          })
-        )}
-      </group>
-
-      {/* Layer selector: 9 colored segments */}
-      <group position={[0, -offset - 1.2, 0]}>
-        {LAYER_COLORS.map((color, i) => (
-          <group
-            key={i}
-            position={[(i - 4) * 0.5, 0, 0]}
-            onClick={(e) => onLayerClick(e, i)}
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerMove={onPointerMove}
-          >
-            <Box args={[0.4, 0.25, 0.15]}>
-              <meshStandardMaterial color={color} />
-              <Edges scale={1.02} color="#333" threshold={15} />
-            </Box>
-            {selectedLayer === i && (
-              <Box args={[0.42, 0.27, 0.06]} position={[0, 0, 0.12]}>
-                <meshStandardMaterial color="#fbbf24" transparent opacity={0.9} />
-              </Box>
+      {/* All 9 layers stacked along Z */}
+      {Array.from({ length: SIZE }, (_, layer) => {
+        const z = layer * layerSpacing - layerOffset;
+        const layerColor = LAYER_COLORS[layer] || '#888';
+        return (
+          <group key={layer} position={[0, 0, z]}>
+            {Array.from({ length: SIZE }, (_, row) =>
+              Array.from({ length: SIZE }, (_, col) => {
+                const cellKey = `${layer},${row},${col}`;
+                if (hideCompletedCells && isCellCompleted(grid, layer, row, col)) {
+                  return null;
+                }
+                const px = col * spacing - offset;
+                const py = (SIZE - 1 - row) * spacing - offset;
+                const val = grid[layer][row][col];
+                const isGiven = givens[layer][row][col];
+                const isSelected =
+                  selectedCell &&
+                  selectedLayer === layer &&
+                  selectedCell.row === row &&
+                  selectedCell.col === col;
+                const isConstraint = constraintSet.has(cellKey);
+                const isError = errorCells.has(cellKey);
+                let cellColor = isGiven ? '#e5e7eb' : '#f9fafb';
+                if (isError) cellColor = '#ef4444';
+                else if (isSelected) cellColor = '#fbbf24';
+                else if (isConstraint) cellColor = '#bfdbfe';
+                return (
+                  <group key={cellKey} position={[px, py, 0]}>
+                    <Box
+                      args={[cellSize, cellSize, 0.06]}
+                      onClick={(e) => onCellClick(e, layer, row, col)}
+                      onPointerDown={onPointerDown}
+                      onPointerMove={onPointerMove}
+                    >
+                      <meshStandardMaterial color={cellColor} />
+                      <Edges
+                        scale={1.02}
+                        color={isSelected ? '#b45309' : layerColor}
+                        threshold={15}
+                      />
+                    </Box>
+                    {isConstraint && !isSelected && (
+                      <Box args={[cellSize * 1.02, cellSize * 1.02, 0.065]} position={[0, 0, 0.001]}>
+                        <meshBasicMaterial color="#3b82f6" transparent opacity={0.25} />
+                      </Box>
+                    )}
+                    {val !== 0 && (
+                      <Text
+                        raycast={null}
+                        position={[0, 0, 0.04]}
+                        fontSize={0.28}
+                        color={isGiven ? '#111827' : '#1d4ed8'}
+                        anchorX="center"
+                        anchorY="middle"
+                      >
+                        {String(val)}
+                      </Text>
+                    )}
+                  </group>
+                );
+              })
             )}
           </group>
-        ))}
-      </group>
+        );
+      })}
 
       {/* Layer label */}
       <Text
-        position={[0, offset + 0.6, 0]}
-        fontSize={0.3}
-        color={layerColor}
+        position={[0, offset + 0.5, layerOffset + 0.5]}
+        fontSize={0.28}
+        color={LAYER_COLORS[selectedLayer] || '#888'}
         anchorX="center"
         anchorY="middle"
       >
@@ -273,7 +287,7 @@ function Sudoku3D({
 
       {gameState.gameWon && (
         <Text
-          position={[0, 0, 1.5]}
+          position={[0, 0, 0]}
           fontSize={0.5}
           color="#10b981"
           anchorX="center"
