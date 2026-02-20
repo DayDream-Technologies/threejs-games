@@ -122,3 +122,71 @@ export function isCellCompleted(grid, layer, row, col) {
   }
   return true;
 }
+
+/**
+ * Cells that are user-filled (not given) and wrong (value !== solution).
+ * Pre-filled clues are never marked wrong.
+ */
+export function getWrongCells(grid, solution, givens) {
+  const wrong = new Set();
+  for (let l = 0; l < SIZE; l++) {
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (givens[l][r][c]) continue;
+        const v = grid[l][r][c];
+        if (v !== 0 && solution[l][r][c] !== v) wrong.add(key(l, r, c));
+      }
+    }
+  }
+  return wrong;
+}
+
+/**
+ * Cells that are in sections (row, column, or 3×3 box in layer) that are fully and correctly filled.
+ * Used for "section complete" highlight. Returns set of cell keys.
+ */
+export function getSectionCompleteCells(grid, solution) {
+  const out = new Set();
+  for (let layer = 0; layer < SIZE; layer++) {
+    for (let row = 0; row < SIZE; row++) {
+      let rowCorrect = true;
+      for (let c = 0; c < SIZE; c++) {
+        if (grid[layer][row][c] === 0 || grid[layer][row][c] !== solution[layer][row][c]) {
+          rowCorrect = false;
+          break;
+        }
+      }
+      if (rowCorrect) for (let c = 0; c < SIZE; c++) out.add(key(layer, row, c));
+    }
+    for (let col = 0; col < SIZE; col++) {
+      let colCorrect = true;
+      for (let r = 0; r < SIZE; r++) {
+        if (grid[layer][r][col] === 0 || grid[layer][r][col] !== solution[layer][r][col]) {
+          colCorrect = false;
+          break;
+        }
+      }
+      if (colCorrect) for (let r = 0; r < SIZE; r++) out.add(key(layer, r, col));
+    }
+    for (let br = 0; br < SIZE; br += BOX) {
+      for (let bc = 0; bc < SIZE; bc += BOX) {
+        let boxCorrect = true;
+        for (let r = br; r < br + BOX; r++) {
+          for (let c = bc; c < bc + BOX; c++) {
+            if (grid[layer][r][c] === 0 || grid[layer][r][c] !== solution[layer][r][c]) {
+              boxCorrect = false;
+              break;
+            }
+          }
+          if (!boxCorrect) break;
+        }
+        if (boxCorrect) {
+          for (let r = br; r < br + BOX; r++) {
+            for (let c = bc; c < bc + BOX; c++) out.add(key(layer, r, c));
+          }
+        }
+      }
+    }
+  }
+  return out;
+}

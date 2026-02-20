@@ -157,6 +157,7 @@ const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOption
       if (gameOptions.difficulty !== undefined) gameProps.difficulty = gameOptions.difficulty;
       if (digitInputRef) gameProps.digitInputRef = digitInputRef;
       if (gameOptions.hideCompletedCells !== undefined) gameProps.hideCompletedCells = gameOptions.hideCompletedCells;
+      if (gameOptions.notesMode !== undefined) gameProps.notesMode = gameOptions.notesMode;
     }
     
     return <GameComponent {...gameProps} />;

@@ -256,7 +256,13 @@ const GamePage = () => {
         onNumberInput: (digit) => digitInputRef.current?.placeDigit?.(digit),
         onClear: () => digitInputRef.current?.clearCell?.(),
         hideCompletedCells: gameOptions.hideCompletedCells || false,
-        onHideCompletedToggle: () => updateGameOption('hideCompletedCells', !gameOptions.hideCompletedCells)
+        onHideCompletedToggle: () => updateGameOption('hideCompletedCells', !gameOptions.hideCompletedCells),
+        notesMode: gameOptions.notesMode || false,
+        onNotesToggle: () => updateGameOption('notesMode', !gameOptions.notesMode),
+        mistakes: gameState.mistakes ?? 0,
+        consecutiveMistakes: gameState.consecutiveMistakes ?? 0,
+        showHint: (gameState.consecutiveMistakes ?? 0) >= 3,
+        completedDigits: gameState.completedDigits || []
       });
     }
     

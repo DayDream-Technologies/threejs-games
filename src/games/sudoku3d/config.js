@@ -17,22 +17,25 @@ export const LAYER_COLORS = [
   '#90be6d'  // lime/green
 ];
 
-// Difficulty: fraction of cells that are given (pre-filled). Higher = easier.
+// Difficulty: clue count range (per 81 cells) mapped to given ratio for 729-cell grid.
+// Easy 35-40, Medium 28-32, Hard 25-28, Very Hard 22-25, Insane 17-22.
 export const DIFFICULTY_CONFIG = {
-  Easy:   { givenRatio: 0.38 },  // ~38% givens
-  Medium: { givenRatio: 0.32 }, // ~32% givens
-  Hard:   { givenRatio: 0.26 }   // ~26% givens
+  Easy:      { givenRatio: 0.46 },  // ~35-40 clues per 81
+  Medium:    { givenRatio: 0.36 },  // ~28-32
+  Hard:      { givenRatio: 0.32 },  // ~25-28
+  'Very Hard': { givenRatio: 0.29 }, // ~22-25
+  Insane:    { givenRatio: 0.24 }   // ~17-22
 };
 
 export const BOARD_CONFIG = {
   size: 9,
-  spacing: 0.55,
-  cellSize: 0.48,
-  layerSpacing: 0.9
+  spacing: 0.95,
+  cellSize: 0.82,
+  layerSpacing: 1.35
 };
 
 export const getCameraPosition = (difficulty = 'Medium') => {
-  return [8, 8, 14];
+  return [5, 5, 9];
 };
 
 export const getGivenRatio = (difficulty = 'Medium') => {

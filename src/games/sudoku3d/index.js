@@ -26,12 +26,16 @@ const sudokuConfig = {
     level: 'Medium',
     isPlaying: true,
     gameWon: false,
-    gameLost: false
+    gameLost: false,
+    mistakes: 0,
+    consecutiveMistakes: 0,
+    completedDigits: [false, false, false, false, false, false, false, false, false, false]
   }),
 
   getDefaultOptions: () => ({
     difficulty: 'Medium',
-    hideCompletedCells: false
+    hideCompletedCells: false,
+    notesMode: false
   })
 };
 

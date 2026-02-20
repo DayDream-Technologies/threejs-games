@@ -4,7 +4,8 @@ import { LAYER_COLORS, BOARD_CONFIG } from './config';
 import { generatePuzzle } from './puzzleGenerator';
 import {
   getConflictCells,
-  isGridValid,
+  getWrongCells,
+  getSectionCompleteCells,
   getConstraintCells,
   isCellCompleted
 } from './sudokuValidation';
@@ -20,7 +21,8 @@ function Sudoku3D({
   hintFunctionRef,
   checkFunctionRef,
   digitInputRef,
-  hideCompletedCells = false
+  hideCompletedCells = false,
+  notesMode = false
 }) {
   const [grid, setGrid] = useState(() =>
     Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => Array(9).fill(0)))
@@ -33,7 +35,22 @@ function Sudoku3D({
   );
   const [selectedLayer, setSelectedLayer] = useState(0);
   const [selectedCell, setSelectedCell] = useState(null);
-  const errorCells = useMemo(() => getConflictCells(grid), [grid]);
+  const [mistakes, setMistakes] = useState(0);
+  const [consecutiveMistakes, setConsecutiveMistakes] = useState(0);
+  const [notes, setNotes] = useState(() =>
+    Array.from({ length: 9 }, () =>
+      Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()))
+    )
+  );
+  const conflictCells = useMemo(() => getConflictCells(grid), [grid]);
+  const wrongCells = useMemo(
+    () => getWrongCells(grid, solution, givens),
+    [grid, solution, givens]
+  );
+  const sectionCompleteCells = useMemo(
+    () => getSectionCompleteCells(grid, solution),
+    [grid, solution]
+  );
   const isDraggingRef = useRef(false);
   const pointerDownRef = useRef([0, 0]);
   const DRAG_THRESHOLD = 6;
@@ -45,6 +62,13 @@ function Sudoku3D({
     setSolution(newSolution);
     setSelectedLayer(0);
     setSelectedCell(null);
+    setMistakes(0);
+    setConsecutiveMistakes(0);
+    setNotes(() =>
+      Array.from({ length: 9 }, () =>
+        Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()))
+      )
+    );
     setGameState((prev) => ({ ...prev, gameWon: false, gameLost: false }));
   }, [difficulty, setGameState]);
 
@@ -59,13 +83,35 @@ function Sudoku3D({
       if (selectedCell == null || digit < 1 || digit > 9) return;
       const { row, col } = selectedCell;
       if (givens[selectedLayer][row][col]) return;
+      if (notesMode) {
+        setNotes((prev) => {
+          const next = prev.map((l) => l.map((r) => r.map((s) => new Set(s))));
+          const s = next[selectedLayer][row][col];
+          if (s.has(digit)) s.delete(digit);
+          else s.add(digit);
+          return next;
+        });
+        return;
+      }
+      const isWrong = solution[selectedLayer][row][col] !== digit;
+      if (isWrong) {
+        setMistakes((m) => m + 1);
+        setConsecutiveMistakes((c) => c + 1);
+      } else {
+        setConsecutiveMistakes(0);
+      }
+      setNotes((prev) => {
+        const next = prev.map((l) => l.map((r) => r.map((s) => new Set(s))));
+        next[selectedLayer][row][col] = new Set();
+        return next;
+      });
       setGrid((prev) => {
         const next = prev.map((layer) => layer.map((row) => [...row]));
         next[selectedLayer][row][col] = digit;
         return next;
       });
     },
-    [selectedCell, selectedLayer, givens]
+    [selectedCell, selectedLayer, givens, solution, notesMode]
   );
 
   const clearCell = useCallback(() => {
@@ -79,14 +125,6 @@ function Sudoku3D({
     });
   }, [selectedCell, selectedLayer, givens]);
 
-  useEffect(() => {
-    if (digitInputRef) {
-      digitInputRef.current = { placeDigit, clearCell };
-    }
-    return () => {
-      if (digitInputRef) digitInputRef.current = null;
-    };
-  }, [digitInputRef, placeDigit, clearCell]);
 
   const doHint = useCallback(() => {
     const empty = [];
@@ -99,6 +137,12 @@ function Sudoku3D({
     }
     if (empty.length === 0) return false;
     const [l, r, c] = empty[Math.floor(Math.random() * empty.length)];
+    setMistakes((m) => m + 2);
+    setNotes((prev) => {
+      const next = prev.map((la) => la.map((ro) => ro.map((se) => new Set(se))));
+      next[l][r][c] = new Set();
+      return next;
+    });
     setGrid((prev) => {
       const next = prev.map((layer) => layer.map((row) => [...row]));
       next[l][r][c] = solution[l][r][c];
@@ -109,17 +153,80 @@ function Sudoku3D({
     return true;
   }, [grid, givens, solution]);
 
+  const isGridFilled = useMemo(() => {
+    for (let l = 0; l < SIZE; l++)
+      for (let r = 0; r < SIZE; r++)
+        for (let c = 0; c < SIZE; c++) if (grid[l][r][c] === 0) return false;
+    return true;
+  }, [grid]);
+
   useEffect(() => {
     if (gameState.gameWon) return;
-    if (isGridValid(grid)) {
+    if (isGridFilled) {
       setGameState((gs) => ({ ...gs, gameWon: true }));
     }
-  }, [grid, gameState.gameWon, setGameState]);
+  }, [isGridFilled, gameState.gameWon, setGameState]);
 
   const constraintSet = useMemo(() => {
     if (selectedCell == null) return new Set();
     return getConstraintCells(selectedLayer, selectedCell.row, selectedCell.col);
   }, [selectedLayer, selectedCell]);
+
+  const selectedValue =
+    selectedCell != null && selectedLayer != null
+      ? grid[selectedLayer][selectedCell.row][selectedCell.col]
+      : 0;
+  const highlightSameNumber = useMemo(() => {
+    if (selectedValue === 0) return new Set();
+    const set = new Set();
+    for (let l = 0; l < SIZE; l++) {
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (grid[l][r][c] === selectedValue) set.add(`${l},${r},${c}`);
+        }
+      }
+    }
+    return set;
+  }, [grid, selectedValue]);
+
+  const isDigitComplete = useCallback(
+    (digit) => {
+      let count = 0;
+      for (let l = 0; l < SIZE; l++) {
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            if (solution[l][r][c] === digit && grid[l][r][c] === digit) count++;
+          }
+        }
+      }
+      return count === 9;
+    },
+    [grid, solution]
+  );
+
+  const completedDigits = useMemo(
+    () => Array.from({ length: 10 }, (_, d) => d >= 1 && isDigitComplete(d)),
+    [isDigitComplete]
+  );
+
+  useEffect(() => {
+    setGameState((prev) => ({ ...prev, mistakes, consecutiveMistakes, completedDigits }));
+  }, [mistakes, consecutiveMistakes, completedDigits, setGameState]);
+
+  useEffect(() => {
+    if (digitInputRef) {
+      digitInputRef.current = {
+        placeDigit,
+        clearCell,
+        consecutiveMistakes,
+        mistakes,
+        showHint: consecutiveMistakes >= 3
+      };
+    }
+    return () => {
+      if (digitInputRef) digitInputRef.current = null;
+    };
+  }, [digitInputRef, placeDigit, clearCell, consecutiveMistakes, mistakes]);
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -225,11 +332,26 @@ function Sudoku3D({
                   selectedCell.row === row &&
                   selectedCell.col === col;
                 const isConstraint = constraintSet.has(cellKey);
-                const isError = errorCells.has(cellKey);
+                const isWrong = wrongCells.has(cellKey);
+                const isConflict = !isGiven && !isWrong && conflictCells.has(cellKey);
+                const isHighlightSame = highlightSameNumber.has(cellKey);
+                const isSectionComplete = sectionCompleteCells.has(cellKey);
                 let cellColor = isGiven ? '#e5e7eb' : '#f9fafb';
-                if (isError) cellColor = '#ef4444';
-                else if (isSelected) cellColor = '#fbbf24';
-                else if (isConstraint) cellColor = '#bfdbfe';
+                if (isWrong) cellColor = '#ef4444';
+                else if (isConflict) cellColor = '#fdba74';
+                else if (isSelected) cellColor = '#93c5fd';
+                else if (isSectionComplete) cellColor = '#86efac';
+                else if (isHighlightSame) cellColor = '#bfdbfe';
+                else if (isConstraint) cellColor = '#dbeafe';
+                const digitColor = isWrong
+                  ? '#ffffff'
+                  : isConflict
+                    ? '#9a3412'
+                    : isGiven
+                      ? '#111827'
+                      : '#0d9488';
+                const cellNotes = notes[layer][row][col];
+                const hasNotes = cellNotes && cellNotes.size > 0;
                 return (
                   <group key={cellKey} position={[px, py, 0]}>
                     <Box
@@ -241,22 +363,22 @@ function Sudoku3D({
                       <meshStandardMaterial color={cellColor} />
                       <Edges
                         scale={1.02}
-                        color={isSelected ? '#b45309' : layerColor}
+                        color={isSelected ? '#2563eb' : layerColor}
                         threshold={15}
                       />
                     </Box>
-                    {isConstraint && !isSelected && (
+                    {isConstraint && !isSelected && !isWrong && !isConflict && (
                       <Box args={[cellSize * 1.02, cellSize * 1.02, 0.065]} position={[0, 0, 0.001]}>
-                        <meshBasicMaterial color="#3b82f6" transparent opacity={0.25} />
+                        <meshBasicMaterial color="#3b82f6" transparent opacity={0.2} />
                       </Box>
                     )}
-                    {val !== 0 && (
+                    {val !== 0 ? (
                       <>
                         <Text
                           raycast={null}
                           position={[0, 0, 0.04]}
                           fontSize={0.28}
-                          color={isError ? '#ffffff' : isGiven ? '#111827' : '#1d4ed8'}
+                          color={digitColor}
                           anchorX="center"
                           anchorY="middle"
                         >
@@ -267,14 +389,36 @@ function Sudoku3D({
                           position={[0, 0, -0.04]}
                           rotation={[0, Math.PI, 0]}
                           fontSize={0.28}
-                          color={isError ? '#ffffff' : isGiven ? '#111827' : '#1d4ed8'}
+                          color={digitColor}
                           anchorX="center"
                           anchorY="middle"
                         >
                           {String(val)}
                         </Text>
                       </>
-                    )}
+                    ) : hasNotes ? (
+                      <group raycast={null} position={[0, 0, 0.04]}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
+                          if (!cellNotes.has(n)) return null;
+                          const rn = Math.floor((n - 1) / 3);
+                          const cn = (n - 1) % 3;
+                          const nx = (cn - 1) * 0.12;
+                          const ny = (1 - rn) * 0.12;
+                          return (
+                            <Text
+                              key={n}
+                              position={[nx, ny, 0]}
+                              fontSize={0.14}
+                              color={isSelected ? '#1e3a5f' : '#0d9488'}
+                              anchorX="center"
+                              anchorY="middle"
+                            >
+                              {String(n)}
+                            </Text>
+                          );
+                        })}
+                      </group>
+                    ) : null}
                   </group>
                 );
               })
