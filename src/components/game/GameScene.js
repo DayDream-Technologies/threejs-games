@@ -110,7 +110,7 @@ const PlaceholderScene = ({ gameId }) => {
   );
 };
 
-const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOptions, hintFunctionRef, checkFunctionRef, digitInputRef, onWordSelected }) => {
+const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOptions, hintFunctionRef, checkFunctionRef, digitInputRef, mobileActionRef, onWordSelected }) => {
   // Try to get the game from registry
   const gameConfig = getGame(gameId);
   
@@ -160,6 +160,8 @@ const GameScene = ({ gameId, gameState, setGameState, gameOptions, setGameOption
       if (gameOptions.notesMode !== undefined) gameProps.notesMode = gameOptions.notesMode;
       if (gameOptions.viewOnlyLayer !== undefined) gameProps.viewOnlyLayer = gameOptions.viewOnlyLayer;
     }
+
+    if (mobileActionRef) gameProps.mobileActionRef = mobileActionRef;
     
     return <GameComponent {...gameProps} />;
   }

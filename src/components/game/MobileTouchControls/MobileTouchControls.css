@@ -1,0 +1,133 @@
+.mobile-touch-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 8px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  gap: 8px;
+}
+
+.mobile-touch-controls__cluster {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: min(48vw, 280px);
+}
+
+.mobile-touch-controls__cluster--right {
+  align-items: flex-end;
+}
+
+.mobile-touch-pad {
+  display: grid;
+  gap: 4px;
+  align-items: center;
+  justify-items: center;
+}
+
+.mobile-touch-pad--4way {
+  grid-template-columns: repeat(3, minmax(44px, 52px));
+  grid-template-rows: repeat(3, minmax(44px, 52px));
+}
+
+.mobile-touch-pad--wasd {
+  grid-template-columns: repeat(3, minmax(40px, 48px));
+  grid-template-rows: repeat(3, minmax(40px, 48px));
+}
+
+.mobile-touch-pad__spacer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.mobile-touch-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 8px;
+  border: 2px solid rgba(78, 205, 196, 0.6);
+  border-radius: 8px;
+  background: rgba(15, 15, 35, 0.92);
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  font-weight: 700;
+  touch-action: manipulation;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.mobile-touch-btn:active {
+  background: rgba(30, 30, 55, 0.95);
+  transform: scale(0.97);
+}
+
+.mobile-touch-btn--wide {
+  min-width: 52px;
+}
+
+.mobile-touch-btn--small {
+  min-width: 40px;
+  min-height: 40px;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+}
+
+.mobile-touch-crossword {
+  pointer-events: auto;
+  width: 100%;
+  align-self: stretch;
+  max-height: 38vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(15, 15, 35, 0.88);
+  border: 1px solid rgba(78, 205, 196, 0.4);
+  border-radius: 10px;
+}
+
+.mobile-touch-crossword__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.mobile-touch-sudoku-pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(44px, 50px));
+  grid-template-rows: repeat(3, minmax(44px, 50px));
+  gap: 4px;
+  align-items: center;
+  justify-items: center;
+}
+
+.mobile-touch-controls--crossword {
+  align-items: stretch;
+  justify-content: flex-end;
+  padding-left: max(8px, env(safe-area-inset-left));
+  padding-right: max(8px, env(safe-area-inset-right));
+}
+
+.mobile-touch-sudoku-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mobile-touch-tetris-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+  max-width: min(48vw, 200px);
+}

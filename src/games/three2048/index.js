@@ -15,7 +15,8 @@ const game2048Config = {
   getCameraConfig: () => createCameraConfig(getCameraPosition(), 75, true),
   getDefaultState: () => ({
     ...createDefaultGameState(),
-    isPlaying: true
+    isPlaying: true,
+    winPendingChoice: false
   }),
   getDefaultOptions: () => ({})
 };

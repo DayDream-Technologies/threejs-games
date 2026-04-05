@@ -367,4 +367,93 @@
     width: 100%;
     max-width: 200px;
   }
-} 
+}
+
+/* 3D 2048 — win modal (pause + choice) */
+.game-2048-win-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: rgba(10, 10, 26, 0.88);
+  backdrop-filter: blur(8px);
+  animation: game2048WinFadeIn 0.5s ease-out;
+  pointer-events: auto;
+}
+
+@keyframes game2048WinFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes game2048WinTitlePop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes game2048WinGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(78, 205, 196, 0.35), 0 0 40px rgba(250, 204, 21, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(78, 205, 196, 0.55), 0 0 56px rgba(250, 204, 21, 0.35);
+  }
+}
+
+.game-2048-win-modal {
+  max-width: 420px;
+  width: 100%;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--neon-cyan);
+  background: linear-gradient(145deg, rgba(15, 15, 35, 0.98) 0%, rgba(25, 25, 50, 0.98) 100%);
+  text-align: center;
+  animation: game2048WinGlow 2.5s ease-in-out infinite;
+}
+
+.game-2048-win-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  color: var(--neon-yellow);
+  text-shadow: 0 0 16px rgba(250, 204, 21, 0.5);
+  margin: 0 0 var(--spacing-sm);
+  animation: game2048WinTitlePop 0.65s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.game-2048-win-subtitle {
+  color: var(--light-text);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  margin: 0 0 var(--spacing-lg);
+  opacity: 0.92;
+}
+
+.game-2048-win-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.game-2048-win-actions .start-button,
+.game-2048-win-actions .instructions-button {
+  min-width: 140px;
+}

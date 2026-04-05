@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { Box, Text, Edges, Cone, Cylinder } from '@react-three/drei';
 import {
   GRID,
@@ -8,7 +9,8 @@ import {
   hasAnyMove,
   hasReachedWin,
   createInitialBoard,
-  createEmptyBoard
+  createEmptyBoard,
+  WIN_VALUE
 } from './gameLogic';
 import {
   CUBE_CONFIG,
@@ -16,6 +18,7 @@ import {
   getBoardOuterExtent,
   getTileBackgroundColor,
   getTileTextColor,
+  formatCubeLabel,
   formatWinLabel
 } from './config';
 
@@ -133,15 +136,35 @@ function DirectionIndicators2048() {
   );
 }
 
-function Three2048({ gameState, setGameState }) {
+/** Gentle scale pulse on tiles that satisfy the win condition while the win modal is open */
+function WinPulseGroup({ active, children }) {
+  const groupRef = useRef(null);
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    if (active) {
+      const s = 1 + 0.08 * Math.sin(state.clock.elapsedTime * 2.8);
+      groupRef.current.scale.setScalar(s);
+    } else {
+      groupRef.current.scale.setScalar(1);
+    }
+  });
+  useEffect(() => {
+    if (!active && groupRef.current) {
+      groupRef.current.scale.setScalar(1);
+    }
+  }, [active]);
+  return <group ref={groupRef}>{children}</group>;
+}
+
+function Three2048({ gameState, setGameState, mobileActionRef }) {
   const [board, setBoard] = useState(() => createEmptyBoard());
   const winAnnouncedRef = useRef(false);
   const playingRef = useRef(gameState.isPlaying);
   const wasPlayingRef = useRef(false);
 
   useEffect(() => {
-    playingRef.current = gameState.isPlaying;
-  }, [gameState.isPlaying]);
+    playingRef.current = gameState.isPlaying && !gameState.winPendingChoice;
+  }, [gameState.isPlaying, gameState.winPendingChoice]);
 
   useEffect(() => {
     if (gameState.isPlaying && !wasPlayingRef.current) {
@@ -151,7 +174,8 @@ function Three2048({ gameState, setGameState }) {
         ...prev,
         score: 0,
         gameWon: false,
-        gameLost: false
+        gameLost: false,
+        winPendingChoice: false
       }));
     }
     wasPlayingRef.current = gameState.isPlaying;
@@ -172,17 +196,21 @@ function Three2048({ gameState, setGameState }) {
           if (gs.gameLost) return gs;
           const newScore = gs.score + moveScore;
           let gameWon = gs.gameWon;
+          let winPendingChoice = gs.winPendingChoice ?? false;
           if (!winAnnouncedRef.current && hasReachedWin(next)) {
             winAnnouncedRef.current = true;
             gameWon = true;
+            winPendingChoice = true;
           }
           const lost = !hasAnyMove(next);
+          const gameLost = lost && !gameWon;
           return {
             ...gs,
             score: newScore,
             gameWon,
-            gameLost: lost,
-            isPlaying: lost ? false : gs.isPlaying
+            gameLost,
+            winPendingChoice,
+            isPlaying: gameLost ? false : gs.isPlaying
           };
         });
 
@@ -191,6 +219,16 @@ function Three2048({ gameState, setGameState }) {
     },
     [setGameState]
   );
+
+  useEffect(() => {
+    if (!mobileActionRef) return;
+    mobileActionRef.current = {
+      applyDirection: (dir) => applyDirection(dir)
+    };
+    return () => {
+      mobileActionRef.current = null;
+    };
+  }, [mobileActionRef, applyDirection]);
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -228,7 +266,8 @@ function Three2048({ gameState, setGameState }) {
   }
 
   const showGameOver = gameState.gameLost;
-  const showWinBanner = gameState.gameWon;
+  const winModalOpen = !!gameState.winPendingChoice;
+  const pulseWinTiles = winModalOpen;
 
   return (
     <group>
@@ -243,80 +282,98 @@ function Three2048({ gameState, setGameState }) {
         <Edges color={BOARD_OUTLINE_COLOR} threshold={15} />
       </Box>
 
-      {cubes.map(({ x, y, z, px, py, pz, v, bg, fg }) => (
-        <group key={`${x}-${y}-${z}`} position={[px, py, pz]}>
-          <Box args={[CUBE_CONFIG.size, CUBE_CONFIG.size, CUBE_CONFIG.size]}>
-            <meshStandardMaterial color={bg} />
-            <Edges scale={1.001} color={CUBE_CONFIG.edgeColor} threshold={15} />
-          </Box>
-          <Text raycast={null} position={[0, 0, 0.41]} fontSize={0.22} color={fg} anchorX="center" anchorY="middle">
-            {String(v)}
-          </Text>
-          <Text
-            raycast={null}
-            position={[0, 0, -0.41]}
-            rotation={[0, Math.PI, 0]}
-            fontSize={0.22}
-            color={fg}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {String(v)}
-          </Text>
-          <Text
-            raycast={null}
-            position={[0.41, 0, 0]}
-            rotation={[0, Math.PI / 2, 0]}
-            fontSize={0.22}
-            color={fg}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {String(v)}
-          </Text>
-          <Text
-            raycast={null}
-            position={[-0.41, 0, 0]}
-            rotation={[0, -Math.PI / 2, 0]}
-            fontSize={0.22}
-            color={fg}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {String(v)}
-          </Text>
-          <Text
-            raycast={null}
-            position={[0, 0.41, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            fontSize={0.22}
-            color={fg}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {String(v)}
-          </Text>
-          <Text
-            raycast={null}
-            position={[0, -0.41, 0]}
-            rotation={[Math.PI / 2, 0, 0]}
-            fontSize={0.22}
-            color={fg}
-            anchorX="center"
-            anchorY="middle"
-          >
-            {String(v)}
-          </Text>
-        </group>
-      ))}
+      {cubes.map(({ x, y, z, px, py, pz, v, bg, fg }) => {
+        const isWinningTile = v >= WIN_VALUE;
+        const inner = (
+          <group>
+            <Box args={[CUBE_CONFIG.size, CUBE_CONFIG.size, CUBE_CONFIG.size]}>
+              <meshStandardMaterial color={bg} />
+              <Edges scale={1.001} color={CUBE_CONFIG.edgeColor} threshold={15} />
+            </Box>
+            <Text raycast={null} position={[0, 0, 0.41]} fontSize={0.2} color={fg} anchorX="center" anchorY="middle">
+              {formatCubeLabel(v)}
+            </Text>
+            <Text
+              raycast={null}
+              position={[0, 0, -0.41]}
+              rotation={[0, Math.PI, 0]}
+              fontSize={0.2}
+              color={fg}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {formatCubeLabel(v)}
+            </Text>
+            <Text
+              raycast={null}
+              position={[0.41, 0, 0]}
+              rotation={[0, Math.PI / 2, 0]}
+              fontSize={0.2}
+              color={fg}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {formatCubeLabel(v)}
+            </Text>
+            <Text
+              raycast={null}
+              position={[-0.41, 0, 0]}
+              rotation={[0, -Math.PI / 2, 0]}
+              fontSize={0.2}
+              color={fg}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {formatCubeLabel(v)}
+            </Text>
+            <Text
+              raycast={null}
+              position={[0, 0.41, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              fontSize={0.2}
+              color={fg}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {formatCubeLabel(v)}
+            </Text>
+            <Text
+              raycast={null}
+              position={[0, -0.41, 0]}
+              rotation={[Math.PI / 2, 0, 0]}
+              fontSize={0.2}
+              color={fg}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {formatCubeLabel(v)}
+            </Text>
+          </group>
+        );
+        return (
+          <group key={`${x}-${y}-${z}`} position={[px, py, pz]}>
+            {isWinningTile && pulseWinTiles ? (
+              <WinPulseGroup active={pulseWinTiles}>{inner}</WinPulseGroup>
+            ) : (
+              inner
+            )}
+          </group>
+        );
+      })}
 
-      {showWinBanner && (
-        <Text position={[0, OFFSET + 1.1, 0]} fontSize={0.38} color="#10b981" anchorX="center" anchorY="middle">
-          {`You reached ${formatWinLabel()} — keep going!`}
+      {gameState.gameWon && !winModalOpen && (
+        <Text position={[0, OFFSET + 1.1, 0]} fontSize={0.34} color="#10b981" anchorX="center" anchorY="middle">
+          {`${formatWinLabel()} — keep going!`}
         </Text>
       )}
       {showGameOver && (
-        <Text position={[0, OFFSET + (showWinBanner ? 1.65 : 1.1), 0]} fontSize={0.45} color="#ef4444" anchorX="center" anchorY="middle">
+        <Text
+          position={[0, OFFSET + (gameState.gameWon && !winModalOpen ? 1.65 : 1.1), 0]}
+          fontSize={0.45}
+          color="#ef4444"
+          anchorX="center"
+          anchorY="middle"
+        >
           Game Over
         </Text>
       )}

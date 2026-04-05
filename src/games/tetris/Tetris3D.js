@@ -372,7 +372,7 @@ const DirectionIndicators = ({ width, depth, height, spacing }) => {
   );
 };
 
-function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = false }) {
+function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = false, mobileActionRef }) {
   const config = DIFFICULTY_CONFIG[difficulty];
   const { baseWidth: width, baseDepth: depth, height } = config;
   const spacing = CUBE_CONFIG.spacing;
@@ -576,6 +576,81 @@ function Tetris3D({ gameState, setGameState, difficulty = 'Easy', isPaused = fal
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [currentPiece, board, width, depth, height, gameState.isPlaying, gameOver, isPaused, lockCurrentPiece, lockPieceDirectly, setGameState]);
+
+  useEffect(() => {
+    if (!mobileActionRef) return;
+    const canAct = () =>
+      gameState.isPlaying && !gameOver && !isPaused && currentPiece;
+
+    mobileActionRef.current = {
+      moveA: () => {
+        if (!canAct()) return;
+        const newPiece = tryMove(currentPiece, -1, 0, 0, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      moveD: () => {
+        if (!canAct()) return;
+        const newPiece = tryMove(currentPiece, 1, 0, 0, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      moveW: () => {
+        if (!canAct()) return;
+        const newPiece = tryMove(currentPiece, 0, 0, 1, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      moveS: () => {
+        if (!canAct()) return;
+        const newPiece = tryMove(currentPiece, 0, 0, -1, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      rotateQ: () => {
+        if (!canAct()) return;
+        const newPiece = tryRotate(currentPiece, 'Y', false, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      rotateE: () => {
+        if (!canAct()) return;
+        const newPiece = tryRotate(currentPiece, 'Y', true, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      rotateXUp: () => {
+        if (!canAct()) return;
+        const newPiece = tryRotate(currentPiece, 'X', true, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      rotateXDown: () => {
+        if (!canAct()) return;
+        const newPiece = tryRotate(currentPiece, 'X', false, board, width, depth, height);
+        if (newPiece) setCurrentPiece(newPiece);
+      },
+      hardDrop: () => {
+        if (!canAct()) return;
+        const { piece: droppedPiece, distance } = hardDrop(currentPiece, board, width, depth, height);
+        setCurrentPiece(droppedPiece);
+        setGameState((prev) => ({ ...prev, score: prev.score + distance * 2 }));
+        lockPieceDirectly(droppedPiece);
+      },
+      setSoftDrop: (on) => {
+        softDropRef.current = !!on;
+      }
+    };
+    return () => {
+      mobileActionRef.current = null;
+    };
+  }, [
+    mobileActionRef,
+    currentPiece,
+    board,
+    width,
+    depth,
+    height,
+    gameState.isPlaying,
+    gameOver,
+    isPaused,
+    lockPieceDirectly,
+    setGameState,
+    setCurrentPiece
+  ]);
   
   // Game loop - piece gravity
   useFrame(() => {

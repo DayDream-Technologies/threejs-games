@@ -23,6 +23,7 @@ function Sudoku3D({
   hintFunctionRef,
   checkFunctionRef,
   digitInputRef,
+  mobileActionRef,
   hideCompletedCells = false,
   notesMode = false,
   viewOnlyLayer = null
@@ -237,6 +238,40 @@ function Sudoku3D({
     };
   }, [digitInputRef, placeDigit, clearCell, consecutiveMistakes, mistakes]);
 
+  const moveSelection = useCallback(
+    (dr, dc) => {
+      if (!gameState.isPlaying || gameState.gameWon) return;
+      setSelectedCell((prev) => {
+        const row = prev ? prev.row : 0;
+        const col = prev ? prev.col : 0;
+        return {
+          row: Math.max(0, Math.min(8, row + dr)),
+          col: Math.max(0, Math.min(8, col + dc))
+        };
+      });
+    },
+    [gameState.isPlaying, gameState.gameWon]
+  );
+
+  const bumpLayer = useCallback(
+    (delta) => {
+      if (!gameState.isPlaying || gameState.gameWon) return;
+      setSelectedLayer((prev) => Math.max(0, Math.min(8, prev + delta)));
+    },
+    [gameState.isPlaying, gameState.gameWon]
+  );
+
+  useEffect(() => {
+    if (!mobileActionRef) return;
+    mobileActionRef.current = {
+      moveSelection,
+      bumpLayer
+    };
+    return () => {
+      mobileActionRef.current = null;
+    };
+  }, [mobileActionRef, moveSelection, bumpLayer]);
+
   useEffect(() => {
     const onKeyDown = (e) => {
       if (!gameState.isPlaying || gameState.gameWon) return;
@@ -251,29 +286,19 @@ function Sudoku3D({
       }
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        setSelectedCell((prev) => {
-          const row = prev ? prev.row : 0;
-          const col = prev ? prev.col : 0;
-          let nr = row;
-          let nc = col;
-          if (e.key === 'ArrowUp') nr = Math.max(0, row - 1);
-          if (e.key === 'ArrowDown') nr = Math.min(8, row + 1);
-          if (e.key === 'ArrowLeft') nc = Math.max(0, col - 1);
-          if (e.key === 'ArrowRight') nc = Math.min(8, col + 1);
-          return { row: nr, col: nc };
-        });
+        if (e.key === 'ArrowUp') moveSelection(-1, 0);
+        if (e.key === 'ArrowDown') moveSelection(1, 0);
+        if (e.key === 'ArrowLeft') moveSelection(0, -1);
+        if (e.key === 'ArrowRight') moveSelection(0, 1);
       }
       if (e.key === 'PageUp' || e.key === 'PageDown') {
         e.preventDefault();
-        setSelectedLayer((prev) => {
-          if (e.key === 'PageUp') return Math.min(8, prev + 1);
-          return Math.max(0, prev - 1);
-        });
+        bumpLayer(e.key === 'PageUp' ? 1 : -1);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [gameState.isPlaying, gameState.gameWon, placeDigit, clearCell]);
+  }, [gameState.isPlaying, gameState.gameWon, placeDigit, clearCell, moveSelection, bumpLayer]);
 
   const doCheck = useCallback(() => {
     // Conflicts are now shown automatically via errorCells derived from grid

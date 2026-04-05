@@ -13,6 +13,8 @@ import { getGameById } from '../../data/games';
 import { getGame } from '../../lib/game';
 import InstructionsPopup from './InstructionsPopup';
 import GameScene from './GameScene';
+import MobileTouchControls from './MobileTouchControls/MobileTouchControls';
+import { useMobileTouchUi } from '../../lib/hooks';
 import './GamePage.css';
 
 const GamePage = () => {
@@ -23,7 +25,9 @@ const GamePage = () => {
   const hintFunctionRef = useRef(null);
   const checkFunctionRef = useRef(null);
   const digitInputRef = useRef(null);
+  const mobileActionRef = useRef(null);
   const [selectedWordInfo, setSelectedWordInfo] = useState(null);
+  const showMobileTouchUi = useMobileTouchUi();
   
   // Get game config from registry
   const gameConfig = getGame(gameId);
@@ -71,6 +75,24 @@ const GamePage = () => {
   const handleCloseInstructions = () => {
     setShowInstructions(false);
   };
+
+  const handle2048WinContinue = useCallback(() => {
+    setGameState((prev) => ({ ...prev, winPendingChoice: false }));
+  }, []);
+
+  const handle2048WinNewGame = useCallback(() => {
+    setGameState((prev) => ({
+      ...prev,
+      isPlaying: false,
+      gameWon: false,
+      gameLost: false,
+      winPendingChoice: false,
+      score: 0
+    }));
+    setTimeout(() => {
+      setGameState((prev) => ({ ...prev, isPlaying: true }));
+    }, 0);
+  }, []);
 
   // Get camera configuration from registry
   const getCameraConfig = () => {
@@ -384,7 +406,12 @@ const GamePage = () => {
           <div className={`game-canvas-container ${gameState.gameWon ? 'game-won' : ''} ${gameState.gameLost ? 'game-lost' : ''}`}>
             <Canvas
               camera={{ position: cameraConfig.position, fov: cameraConfig.fov }}
-              frameloop={gameId === 'tetris-3d' ? 'always' : 'demand'}
+              frameloop={
+                gameId === 'tetris-3d' ||
+                (gameId === '2048-3d' && gameState.winPendingChoice)
+                  ? 'always'
+                  : 'demand'
+              }
               gl={{ antialias: true }}
             >
               <ambientLight intensity={0.5} />
@@ -398,10 +425,38 @@ const GamePage = () => {
                 hintFunctionRef={hintFunctionRef} 
                 checkFunctionRef={checkFunctionRef}
                 digitInputRef={digitInputRef}
+                mobileActionRef={mobileActionRef}
                 onWordSelected={gameId === 'crossword-3d' ? handleWordSelected : undefined}
               />
               <OrbitControls enableZoom={cameraConfig.enableZoom} />
             </Canvas>
+            <MobileTouchControls
+              gameId={gameId}
+              mobileActionRef={mobileActionRef}
+              visible={showMobileTouchUi}
+              isPlaying={
+                gameState.isPlaying &&
+                !(gameId === '2048-3d' && gameState.winPendingChoice)
+              }
+            />
+            {gameId === '2048-3d' && gameState.winPendingChoice && (
+              <div className="game-2048-win-overlay" role="dialog" aria-modal="true" aria-labelledby="game-2048-win-title">
+                <div className="game-2048-win-modal">
+                  <h2 id="game-2048-win-title" className="game-2048-win-title">
+                    You reached 8096!
+                  </h2>
+                  <p className="game-2048-win-subtitle">Goal complete — keep playing for a higher score, or start fresh.</p>
+                  <div className="game-2048-win-actions">
+                    <button type="button" className="start-button" onClick={handle2048WinContinue}>
+                      Keep playing
+                    </button>
+                    <button type="button" className="instructions-button" onClick={handle2048WinNewGame}>
+                      New game
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
           {renderControls()}

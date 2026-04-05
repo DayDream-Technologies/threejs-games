@@ -15,7 +15,7 @@ const colors = {
   letter: '#1f2937' // dark text for letters
 };
 
-function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFunctionRef, checkFunctionRef, onWordSelected, hideFilledWords = false }) {
+function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFunctionRef, checkFunctionRef, onWordSelected, hideFilledWords = false, mobileActionRef }) {
   // Set the grid size dynamically based on boardSize prop
   const gridSize = boardSize;
   const offset = (gridSize - 1) * spacing * 0.5;
@@ -358,136 +358,142 @@ function Crossword3D({ gameState, setGameState, showGrid, boardSize = 5, hintFun
     }
   }, [hintFunctionRef, checkFunctionRef, handleHint, handleCheck]);
 
+  const typeLetter = useCallback(
+    (rawLetter) => {
+      if (!gameState.isPlaying || !selectedCell || !selectedWordId) return;
+      const letter = String(rawLetter).toUpperCase();
+      if (!/^[A-Z]$/.test(letter)) return;
+
+      const positions = getWordPositions(selectedWordId);
+      if (positions.length === 0) return;
+
+      const selectedIndex = positions.findIndex(
+        ([px, py, pz]) =>
+          px === selectedCell[0] && py === selectedCell[1] && pz === selectedCell[2]
+      );
+
+      if (selectedIndex === -1) return;
+
+      setBoard((prevBoard) => {
+        const newBoard = prevBoard.map((col) => col.map((row) => row.map((cell) => (cell ? { ...cell } : null))));
+
+        const [px, py, pz] = positions[selectedIndex];
+        if (newBoard[px][py][pz] && newBoard[px][py][pz].isWordCell) {
+          newBoard[px][py][pz] = {
+            ...newBoard[px][py][pz],
+            letter
+          };
+        }
+
+        if (checkPuzzleComplete(newBoard)) {
+          setGameState((prevGs) => ({ ...prevGs, isPlaying: false, gameWon: true, gameLost: false }));
+        }
+
+        return newBoard;
+      });
+
+      setCellStates((prev) => {
+        const newStates = prev.map((col) => col.map((row) => row.map((state) => state)));
+        const [px, py, pz] = positions[selectedIndex];
+        if (newStates[px][py][pz] === 'wrong') {
+          newStates[px][py][pz] = null;
+        }
+        return newStates;
+      });
+
+      typingBufferRef.current = typingBufferRef.current + letter;
+
+      const nextIndex = selectedIndex + 1;
+      if (nextIndex < positions.length) {
+        const [nextX, nextY, nextZ] = positions[nextIndex];
+        setSelectedCell([nextX, nextY, nextZ]);
+        setSelectedWordPositions(positions);
+      }
+    },
+    [gameState.isPlaying, selectedCell, selectedWordId, getWordPositions, checkPuzzleComplete, setGameState]
+  );
+
+  const backspace = useCallback(() => {
+    if (!gameState.isPlaying || !selectedCell || !selectedWordId) return;
+
+    const positions = getWordPositions(selectedWordId);
+    if (positions.length === 0) return;
+
+    const selectedIndex = positions.findIndex(
+      ([px, py, pz]) =>
+        px === selectedCell[0] && py === selectedCell[1] && pz === selectedCell[2]
+    );
+
+    if (selectedIndex === -1) return;
+
+    const prevIndex = selectedIndex - 1;
+    if (prevIndex >= 0) {
+      const [prevX, prevY, prevZ] = positions[prevIndex];
+      setSelectedCell([prevX, prevY, prevZ]);
+      setSelectedWordPositions(positions);
+
+      setBoard((prevBoard) => {
+        const newBoard = prevBoard.map((col) => col.map((row) => row.map((cell) => (cell ? { ...cell } : null))));
+
+        const [px, py, pz] = positions[prevIndex];
+        if (newBoard[px][py][pz] && newBoard[px][py][pz].isWordCell) {
+          newBoard[px][py][pz] = {
+            ...newBoard[px][py][pz],
+            letter: null
+          };
+        }
+
+        return newBoard;
+      });
+
+      typingBufferRef.current = typingBufferRef.current.slice(0, -1);
+    } else {
+      setBoard((prevBoard) => {
+        const newBoard = prevBoard.map((col) => col.map((row) => row.map((cell) => (cell ? { ...cell } : null))));
+
+        const [px, py, pz] = positions[selectedIndex];
+        if (newBoard[px][py][pz] && newBoard[px][py][pz].isWordCell) {
+          newBoard[px][py][pz] = {
+            ...newBoard[px][py][pz],
+            letter: null
+          };
+        }
+
+        return newBoard;
+      });
+
+      typingBufferRef.current = typingBufferRef.current.slice(0, -1);
+    }
+  }, [gameState.isPlaying, selectedCell, selectedWordId, getWordPositions]);
+
+  useEffect(() => {
+    if (!mobileActionRef) return;
+    mobileActionRef.current = {
+      typeLetter: (ch) => typeLetter(ch),
+      backspace: () => backspace()
+    };
+    return () => {
+      mobileActionRef.current = null;
+    };
+  }, [mobileActionRef, typeLetter, backspace]);
+
   // Handle keyboard input - sequential typing
   useEffect(() => {
     if (!gameState.isPlaying || !selectedCell || !selectedWordId) return;
 
     const handleKeyDown = (e) => {
-      // Only handle letter keys (A-Z)
       if (e.key.length === 1 && /[A-Za-z]/.test(e.key)) {
         e.preventDefault();
-        const letter = e.key.toUpperCase();
-        
-        // Get word positions
-        const positions = getWordPositions(selectedWordId);
-        if (positions.length === 0) return;
-        
-        // Find the index of the selected cell in the word
-        const selectedIndex = positions.findIndex(
-          ([px, py, pz]) => 
-            px === selectedCell[0] && 
-            py === selectedCell[1] && 
-            pz === selectedCell[2]
-        );
-        
-        if (selectedIndex === -1) return;
-        
-        // Fill the currently selected cell with the letter
-        setBoard(prevBoard => {
-          const newBoard = prevBoard.map(col => col.map(row => row.map(cell => cell ? { ...cell } : null)));
-          
-          const [px, py, pz] = positions[selectedIndex];
-          if (newBoard[px][py][pz] && newBoard[px][py][pz].isWordCell) {
-            newBoard[px][py][pz] = {
-              ...newBoard[px][py][pz],
-              letter: letter
-            };
-          }
-          
-          // Check if puzzle is complete
-          if (checkPuzzleComplete(newBoard)) {
-            setGameState(prevGs => ({ ...prevGs, isPlaying: false, gameWon: true, gameLost: false }));
-          }
-          
-          return newBoard;
-        });
-        
-        // Clear the wrong state when a new letter is entered
-        setCellStates(prev => {
-          const newStates = prev.map(col => col.map(row => row.map(state => state)));
-          const [px, py, pz] = positions[selectedIndex];
-          // If the cell was marked as wrong, clear it back to null (grey)
-          if (newStates[px][py][pz] === 'wrong') {
-            newStates[px][py][pz] = null;
-          }
-          return newStates;
-        });
-        
-        // Update buffer
-        typingBufferRef.current = typingBufferRef.current + letter;
-        
-        // Move selection to the next letter in the word
-        const nextIndex = selectedIndex + 1;
-        if (nextIndex < positions.length) {
-          const [nextX, nextY, nextZ] = positions[nextIndex];
-          setSelectedCell([nextX, nextY, nextZ]);
-          setSelectedWordPositions(positions);
-        }
+        typeLetter(e.key);
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
-        
-        // Get word positions
-        const positions = getWordPositions(selectedWordId);
-        if (positions.length === 0) return;
-        
-        const selectedIndex = positions.findIndex(
-          ([px, py, pz]) => 
-            px === selectedCell[0] && 
-            py === selectedCell[1] && 
-            pz === selectedCell[2]
-        );
-        
-        if (selectedIndex === -1) return;
-        
-        // Move selection backwards first
-        const prevIndex = selectedIndex - 1;
-        if (prevIndex >= 0) {
-          const [prevX, prevY, prevZ] = positions[prevIndex];
-          setSelectedCell([prevX, prevY, prevZ]);
-          setSelectedWordPositions(positions);
-          
-          // Clear the letter in the previous cell
-          setBoard(prevBoard => {
-            const newBoard = prevBoard.map(col => col.map(row => row.map(cell => cell ? { ...cell } : null)));
-            
-            const [px, py, pz] = positions[prevIndex];
-            if (newBoard[px][py][pz] && newBoard[px][py][pz].isWordCell) {
-              newBoard[px][py][pz] = {
-                ...newBoard[px][py][pz],
-                letter: null
-              };
-            }
-            
-            return newBoard;
-          });
-          
-          // Update buffer
-          typingBufferRef.current = typingBufferRef.current.slice(0, -1);
-        } else {
-          // If at the beginning, clear the current cell's letter
-          setBoard(prevBoard => {
-            const newBoard = prevBoard.map(col => col.map(row => row.map(cell => cell ? { ...cell } : null)));
-            
-            const [px, py, pz] = positions[selectedIndex];
-            if (newBoard[px][py][pz] && newBoard[px][py][pz].isWordCell) {
-              newBoard[px][py][pz] = {
-                ...newBoard[px][py][pz],
-                letter: null
-              };
-            }
-            
-            return newBoard;
-          });
-          
-          // Update buffer
-          typingBufferRef.current = typingBufferRef.current.slice(0, -1);
-        }
+        backspace();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, selectedWordId, gameState.isPlaying, getWordPositions, checkPuzzleComplete, setGameState]);
+  }, [selectedCell, selectedWordId, gameState.isPlaying, typeLetter, backspace]);
 
   const renderCubes = () => {
     const cubes = [];
