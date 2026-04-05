@@ -132,6 +132,19 @@ export const games = [
     path: '/games/sudoku-3d',
     tags: ['puzzle', '3d', 'sudoku', 'logic', 'numbers'],
     published: true
+  },
+  {
+    id: '2048-3d',
+    title: '3D 2048',
+    description:
+      'Classic 2048 in three dimensions on a 4×4×4 grid. Merge tiles on every axis, reach 8096 to win, and keep playing for a higher score!',
+    genre: 'Puzzle',
+    difficulty: 'Medium',
+    playTime: '5-20 min',
+    image: '/images/2048-3d.svg',
+    path: '/games/2048-3d',
+    tags: ['puzzle', '3d', '2048', 'logic', 'numbers'],
+    published: true
   }
 ];
 

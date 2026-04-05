@@ -313,6 +313,23 @@ const GamePage = () => {
         </>
       );
     }
+
+    if (gameId === '2048-3d') {
+      return (
+        <>
+          <div className="stat">
+            <span className="stat-label">Score</span>
+            <span className="stat-value">{gameState.score}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">Goal</span>
+            <span className="stat-value" style={{ color: gameState.gameWon ? '#10b981' : 'inherit' }}>
+              {gameState.gameWon ? '8096 reached' : '8096'}
+            </span>
+          </div>
+        </>
+      );
+    }
     
     return (
       <>

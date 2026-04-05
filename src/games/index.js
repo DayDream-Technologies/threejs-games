@@ -11,6 +11,7 @@ import './connectfour';
 import './crossword3d';
 import './sudoku3d';
 import './tetris';
+import './three2048';
 
 // Re-export registry functions for convenience
 export { getGame, getAllGames, getGameIds, hasGame } from '../lib/game';
