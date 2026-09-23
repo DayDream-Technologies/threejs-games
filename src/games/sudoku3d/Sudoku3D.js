@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Box, Text, Edges } from '@react-three/drei';
-import { LAYER_COLORS, BOARD_CONFIG } from './config';
+import { LAYER_COLORS, BOARD_CONFIG, getLayerTint, getLayerEdgeColor } from './config';
 import { generatePuzzle } from './puzzleGenerator';
 import {
   getConflictCells,
@@ -10,10 +10,11 @@ import {
   isCellCompleted
 } from './sudokuValidation';
 
-const { size: SIZE, spacing, cellSize, layerSpacing } = BOARD_CONFIG;
+const { size: SIZE, spacing, rowSpacing, cellSize, layerSpacing } = BOARD_CONFIG;
 const cubeSize = cellSize;
 const textOffset = cubeSize / 2 + 0.01;
-const offset = (SIZE - 1) * spacing * 0.5;
+const offsetX = (SIZE - 1) * spacing * 0.5;
+const offsetY = (SIZE - 1) * (rowSpacing || spacing) * 0.5;
 const layerOffset = (SIZE - 1) * layerSpacing * 0.5;
 
 function Sudoku3D({
@@ -349,7 +350,6 @@ function Sudoku3D({
       {/* All 9 layers stacked along Z (or only viewOnlyLayer when set) */}
       {layersToRender.map((layer) => {
         const z = layer * layerSpacing - layerOffset;
-        const layerColor = LAYER_COLORS[layer] || '#888';
         return (
           <group key={layer} position={[0, 0, z]}>
             {Array.from({ length: SIZE }, (_, row) =>
@@ -358,8 +358,8 @@ function Sudoku3D({
                 if (hideCompletedCells && isCellCompleted(grid, layer, row, col)) {
                   return null;
                 }
-                const px = col * spacing - offset;
-                const py = (SIZE - 1 - row) * spacing - offset;
+                const px = col * spacing - offsetX;
+                const py = (SIZE - 1 - row) * (rowSpacing || spacing) - offsetY;
                 const val = grid[layer][row][col];
                 const isGiven = givens[layer][row][col];
                 const isSelected =
@@ -372,14 +372,14 @@ function Sudoku3D({
                 const isConflict = !isGiven && !isWrong && conflictCells.has(cellKey);
                 const isHighlightSame = highlightSameNumber.has(cellKey);
                 const isSectionComplete = sectionCompleteCells.has(cellKey);
-                let cellColor = isGiven ? '#e5e7eb' : '#f9fafb';
+                let cellColor = getLayerTint(layer, isGiven);
                 if (isWrong) cellColor = '#ef4444';
                 else if (isConflict) cellColor = '#fdba74';
                 else if (isSelected) cellColor = '#93c5fd';
                 else if (isSectionComplete) cellColor = '#86efac';
                 else if (isHighlightSame) cellColor = '#bfdbfe';
                 else if (isConstraint) cellColor = '#dbeafe';
-                const edgeColorForCell = isSelected ? '#2563eb' : layerColor;
+                const edgeColorForCell = isSelected ? '#2563eb' : getLayerEdgeColor(layer);
                 const digitColor = isWrong
                   ? '#ffffff'
                   : isConflict
@@ -448,7 +448,7 @@ function Sudoku3D({
 
       {/* Layer label */}
       <Text
-        position={[0, offset + 0.5, layerOffset + 0.5]}
+        position={[0, offsetY + 0.5, layerOffset + 0.5]}
         fontSize={0.28}
         fontWeight="bold"
         color={LAYER_COLORS[selectedLayer] || '#888'}

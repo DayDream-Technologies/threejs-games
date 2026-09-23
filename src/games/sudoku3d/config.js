@@ -30,10 +30,54 @@ export const DIFFICULTY_CONFIG = {
 export const BOARD_CONFIG = {
   size: 9,
   spacing: 1.05,
+  rowSpacing: 1.18,
   cellSize: 0.82,
   layerSpacing: 1.35,
   edgeColor: '#ffffff'
 };
+
+const BASE_USER = '#f9fafb';
+const BASE_GIVEN = '#e5e7eb';
+const TINT_MIX = 0.18;
+const EDGE_MIX = 0.45;
+
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function rgbToHex(r, g, b) {
+  const to = (n) => Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, '0');
+  return `#${to(r)}${to(g)}${to(b)}`;
+}
+
+function mixHex(a, b, t) {
+  const [ar, ag, ab] = hexToRgb(a);
+  const [br, bg, bb] = hexToRgb(b);
+  return rgbToHex(ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t);
+}
+
+/**
+ * Default cube face color for a layer. Slight blend of neutral base with LAYER_COLORS.
+ * @param {number} layerIndex
+ * @param {boolean} [isGiven]
+ */
+export function getLayerTint(layerIndex, isGiven = false) {
+  const base = isGiven ? BASE_GIVEN : BASE_USER;
+  const layer = LAYER_COLORS[layerIndex] || '#888888';
+  return mixHex(base, layer, TINT_MIX);
+}
+
+/** Edge color when a cell is not selected, so the layer stays visible. */
+export function getLayerEdgeColor(layerIndex) {
+  const layer = LAYER_COLORS[layerIndex] || '#888888';
+  return mixHex('#ffffff', layer, EDGE_MIX);
+}
+
+/** Nav button fill matches the default (user) cube face for that layer. */
+export function getLayerNavButtonColor(layerIndex) {
+  return getLayerTint(layerIndex, false);
+}
 
 export const getCameraPosition = (difficulty = 'Medium') => {
   return [6, 6, 11];

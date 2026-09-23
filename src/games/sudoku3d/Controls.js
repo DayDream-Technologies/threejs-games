@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { LAYER_COLORS } from './config';
+import { LAYER_COLORS, getLayerNavButtonColor } from './config';
 
 const SudokuControls = ({
   difficulty,
@@ -35,7 +35,10 @@ const SudokuControls = ({
       </p>
       <div style={{ marginBottom: '10px' }}>
         <span style={{ fontSize: '0.85rem', fontWeight: 600, marginRight: '8px' }}>Layers:</span>
-        {(LAYER_COLORS || []).map((color, i) => (
+        {(LAYER_COLORS || []).map((_, i) => {
+          const color = getLayerNavButtonColor(i);
+          const accent = LAYER_COLORS[i] || color;
+          return (
           <button
             key={i}
             type="button"
@@ -47,15 +50,16 @@ const SudokuControls = ({
               padding: 0,
               margin: '3px',
               backgroundColor: color,
-              border: viewOnlyLayer === i ? `3px solid #1f2937` : `2px solid ${color}`,
-              boxShadow: viewOnlyLayer === i ? `0 0 0 1px ${color}` : 'none',
+              border: viewOnlyLayer === i ? `3px solid #1f2937` : `2px solid ${accent}`,
+              boxShadow: viewOnlyLayer === i ? `0 0 0 1px ${accent}` : 'none',
               borderRadius: 4,
               opacity: viewOnlyLayer != null && viewOnlyLayer !== i ? 0.5 : 1
             }}
             onClick={() => onLayerClick && onLayerClick(i)}
             title={viewOnlyLayer === i ? `Layer ${i + 1} (click to show all)` : `Show only layer ${i + 1}`}
           />
-        ))}
+          );
+        })}
         {viewOnlyLayer != null && (
           <button
             type="button"
