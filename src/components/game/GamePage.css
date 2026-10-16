@@ -367,6 +367,19 @@
     width: 100%;
     max-width: 200px;
   }
+
+  .game-extra-controls,
+  .difficulty-control {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .difficulty-select {
+    min-width: 0;
+    width: 0;
+    flex: 1 1 auto;
+  }
 }
 
 /* 3D 2048 — win modal (pause + choice) */

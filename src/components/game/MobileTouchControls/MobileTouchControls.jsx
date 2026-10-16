@@ -196,7 +196,121 @@ function GameSudokuControls({ mobileActionRef }) {
   );
 }
 
-const TOUCH_GAME_IDS = new Set(['2048-3d', 'tetris-3d', 'crossword-3d', 'sudoku-3d']);
+function HoldBtn({ children, title, className = '', onDown, onUp }) {
+  return (
+    <button
+      type="button"
+      className={`mobile-touch-btn ${className}`.trim()}
+      title={title}
+      onPointerDown={(e) => {
+        stop(e);
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch (err) {
+          // Pointer capture is optional; a synthetic event may not own a pointer.
+        }
+        onDown?.();
+      }}
+      onPointerUp={(e) => {
+        stop(e);
+        onUp?.();
+      }}
+      onPointerCancel={(e) => {
+        stop(e);
+        onUp?.();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GridMoveControls({ mobileActionRef }) {
+  const turn = (dir) => mobileActionRef.current?.turn?.(dir);
+  return (
+    <>
+      <div className="mobile-touch-controls__cluster">
+        <div className="mobile-touch-pad mobile-touch-pad--4way">
+          <div className="mobile-touch-pad__spacer" />
+          <TouchBtn title="Forward (+Z)" onClick={() => turn('posZ')}>↑</TouchBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <TouchBtn title="Left (−X)" onClick={() => turn('negX')}>←</TouchBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <TouchBtn title="Right (+X)" onClick={() => turn('posX')}>→</TouchBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <TouchBtn title="Back (−Z)" onClick={() => turn('negZ')}>↓</TouchBtn>
+          <div className="mobile-touch-pad__spacer" />
+        </div>
+      </div>
+      <div className="mobile-touch-controls__cluster mobile-touch-controls__cluster--right">
+        <TouchBtn title="Up (+Y)" onClick={() => turn('posY')} className="mobile-touch-btn--wide">Y+</TouchBtn>
+        <TouchBtn title="Down (−Y)" onClick={() => turn('negY')} className="mobile-touch-btn--wide">Y−</TouchBtn>
+      </div>
+    </>
+  );
+}
+
+function PlaneHoldControls({ mobileActionRef }) {
+  const hold = (flag, on) => mobileActionRef.current?.hold?.(flag, on);
+  return (
+    <>
+      <div className="mobile-touch-controls__cluster">
+        <div className="mobile-touch-pad mobile-touch-pad--4way">
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Up" onDown={() => hold('py', true)} onUp={() => hold('py', false)}>↑</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Left" onDown={() => hold('nx', true)} onUp={() => hold('nx', false)}>←</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Right" onDown={() => hold('px', true)} onUp={() => hold('px', false)}>→</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Down" onDown={() => hold('ny', true)} onUp={() => hold('ny', false)}>↓</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AsteroidsTouchControls({ mobileActionRef }) {
+  const hold = (flag, on) => mobileActionRef.current?.hold?.(flag, on);
+  return (
+    <>
+      <div className="mobile-touch-controls__cluster">
+        <div className="mobile-touch-pad mobile-touch-pad--4way">
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Pitch up" onDown={() => hold('pitchU', true)} onUp={() => hold('pitchU', false)}>↑</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Yaw left" onDown={() => hold('yawL', true)} onUp={() => hold('yawL', false)}>↺</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Yaw right" onDown={() => hold('yawR', true)} onUp={() => hold('yawR', false)}>↻</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+          <HoldBtn title="Pitch down" onDown={() => hold('pitchD', true)} onUp={() => hold('pitchD', false)}>↓</HoldBtn>
+          <div className="mobile-touch-pad__spacer" />
+        </div>
+      </div>
+      <div className="mobile-touch-controls__cluster mobile-touch-controls__cluster--right">
+        <HoldBtn title="Thrust" className="mobile-touch-btn--wide" onDown={() => hold('thrust', true)} onUp={() => hold('thrust', false)}>
+          Thrust
+        </HoldBtn>
+        <HoldBtn title="Fire" className="mobile-touch-btn--wide" onDown={() => hold('fire', true)} onUp={() => hold('fire', false)}>
+          Fire
+        </HoldBtn>
+      </div>
+    </>
+  );
+}
+
+const TOUCH_GAME_IDS = new Set([
+  '2048-3d',
+  'tetris-3d',
+  'crossword-3d',
+  'sudoku-3d',
+  'snake-3d',
+  'pong-3d',
+  'breakout-3d',
+  'pacman-3d',
+  'asteroids-3d'
+]);
 
 /**
  * Renders fixed touch targets that call into `mobileActionRef` (populated by each game).
@@ -217,6 +331,13 @@ export default function MobileTouchControls({ gameId, mobileActionRef, visible, 
       {gameId === '2048-3d' && <Game2048Controls mobileActionRef={mobileActionRef} />}
       {gameId === 'tetris-3d' && <GameTetrisControls mobileActionRef={mobileActionRef} />}
       {gameId === 'sudoku-3d' && <GameSudokuControls mobileActionRef={mobileActionRef} />}
+      {(gameId === 'snake-3d' || gameId === 'pacman-3d') && (
+        <GridMoveControls mobileActionRef={mobileActionRef} />
+      )}
+      {(gameId === 'pong-3d' || gameId === 'breakout-3d') && (
+        <PlaneHoldControls mobileActionRef={mobileActionRef} />
+      )}
+      {gameId === 'asteroids-3d' && <AsteroidsTouchControls mobileActionRef={mobileActionRef} />}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export const games = [
     image: '/images/snake-3d.jpg',
     path: '/games/snake-3d',
     tags: ['arcade', '3d', 'classic', 'casual'],
-    published: false
+    published: true
   },
   {
     id: 'pong-3d',
@@ -33,7 +33,7 @@ export const games = [
     image: '/images/pong-3d.jpg',
     path: '/games/pong-3d',
     tags: ['sports', '3d', 'classic', 'competitive'],
-    published: false
+    published: true
   },
   {
     id: 'breakout-3d',
@@ -45,7 +45,7 @@ export const games = [
     image: '/images/breakout-3d.jpg',
     path: '/games/breakout-3d',
     tags: ['arcade', '3d', 'classic', 'action'],
-    published: false
+    published: true
   },
   {
     id: 'pacman-3d',
@@ -57,7 +57,7 @@ export const games = [
     image: '/images/pacman-3d.jpg',
     path: '/games/pacman-3d',
     tags: ['arcade', '3d', 'classic', 'maze'],
-    published: false
+    published: true
   },
   {
     id: 'asteroids-3d',
@@ -69,7 +69,7 @@ export const games = [
     image: '/images/asteroids-3d.jpg',
     path: '/games/asteroids-3d',
     tags: ['shooter', '3d', 'classic', 'space'],
-    published: false
+    published: true
   }
   ,
   {

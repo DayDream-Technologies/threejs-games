@@ -80,6 +80,51 @@ export const useHeldKeys = (keys) => {
 };
 
 /**
+ * Track held keys. `keyToFlag` maps event.key (or its lowercase form) to a flag name.
+ * The returned ref is safe to read from a frame loop and from touch handlers.
+ */
+export const useHeldKeyMap = (keyToFlag) => {
+  const held = useRef({});
+  const mapRef = useRef(keyToFlag);
+  mapRef.current = keyToFlag;
+
+  useEffect(() => {
+    const state = {};
+    Object.values(keyToFlag).forEach((flag) => {
+      state[flag] = false;
+    });
+    held.current = state;
+
+    const setFlag = (event, down) => {
+      const map = mapRef.current;
+      const flag = map[event.key] || map[event.key.toLowerCase()];
+      if (!flag) return;
+      event.preventDefault();
+      held.current[flag] = down;
+    };
+
+    const onDown = (event) => setFlag(event, true);
+    const onUp = (event) => setFlag(event, false);
+    const onBlur = () => {
+      Object.keys(held.current).forEach((flag) => {
+        held.current[flag] = false;
+      });
+    };
+
+    window.addEventListener('keydown', onDown);
+    window.addEventListener('keyup', onUp);
+    window.addEventListener('blur', onBlur);
+    return () => {
+      window.removeEventListener('keydown', onDown);
+      window.removeEventListener('keyup', onUp);
+      window.removeEventListener('blur', onBlur);
+    };
+  }, [keyToFlag]);
+
+  return held;
+};
+
+/**
  * Hook for arrow key navigation
  * @param {Object} handlers - Object with up, down, left, right handlers
  * @param {boolean} enabled - Whether navigation is enabled

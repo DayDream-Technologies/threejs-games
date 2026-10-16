@@ -16,3 +16,5 @@ export {
   getAllCoordinates
 } from './board';
 
+export { default as WireBox } from './WireBox';
+

@@ -10,16 +10,38 @@ import { useParams, Link } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { getGameById } from '../../data/games';
-import { getGame } from '../../lib/game';
+import { getGame, isArcadeGame, REALTIME_GAME_IDS } from '../../lib/game';
+import { POINTS_TO_WIN } from '../../games/pong3d/config';
 import InstructionsPopup from './InstructionsPopup';
 import GameScene from './GameScene';
 import MobileTouchControls from './MobileTouchControls/MobileTouchControls';
 import { useMobileTouchUi } from '../../lib/hooks';
 import './GamePage.css';
 
+const ORBIT_KEYS = {
+  LEFT: 'OrbitDisabledLeft',
+  UP: 'OrbitDisabledUp',
+  RIGHT: 'OrbitDisabledRight',
+  BOTTOM: 'OrbitDisabledBottom'
+};
+
+const EMPTY_GAME_STATE = {
+  score: 0,
+  lives: 1,
+  level: 'Easy',
+  isPlaying: false,
+  gameWon: false,
+  gameLost: false
+};
+
+function restartPlaying(setGameState) {
+  setGameState((prev) => ({ ...prev, isPlaying: false }));
+  setTimeout(() => setGameState((prev) => ({ ...prev, isPlaying: true })), 0);
+}
+
 const GamePage = () => {
   const { gameId } = useParams();
-  const [game, setGame] = useState(null);
+  const [game, setGame] = useState(() => getGameById(gameId) || null);
   const [showInstructions, setShowInstructions] = useState(true);
   const [hintButtonRed, setHintButtonRed] = useState(false);
   const hintFunctionRef = useRef(null);
@@ -57,13 +79,17 @@ const GamePage = () => {
 
   useEffect(() => {
     const foundGame = getGameById(gameId);
-    if (foundGame) {
-      setGame(foundGame);
-    }
+    setGame(foundGame || null);
+    const config = getGame(gameId);
+    setGameState(config?.getDefaultState ? config.getDefaultState() : { ...EMPTY_GAME_STATE });
+    setGameOptions(config?.getDefaultOptions ? config.getDefaultOptions() : {});
+    setShowInstructions(true);
+    setSelectedWordInfo(null);
   }, [gameId]);
 
   const handleStartGame = () => {
-    setGameState(prev => ({ ...prev, isPlaying: true }));
+    setGameOptions((prev) => ({ ...prev, isPaused: false }));
+    setGameState((prev) => ({ ...prev, isPlaying: true }));
     setShowInstructions(false);
     setSelectedWordInfo(null);
   };
@@ -167,8 +193,7 @@ const GamePage = () => {
         }
       }
       
-      // Tetris pause toggle
-      if (gameId === 'tetris-3d' && (e.key === 'p' || e.key === 'P')) {
+      if (REALTIME_GAME_IDS.has(gameId) && (e.key === 'p' || e.key === 'P')) {
         e.preventDefault();
         setGameOptions(prev => ({ ...prev, isPaused: !prev.isPaused }));
       }
@@ -249,14 +274,25 @@ const GamePage = () => {
       Object.assign(controlProps, {
         difficulty: gameOptions.difficulty || 'Easy',
         onDifficultyChange: (d) => {
-          updateGameOption('difficulty', d);
-          setGameState(prev => ({ ...prev, isPlaying: false }));
-          setTimeout(() => setGameState(prev => ({ ...prev, isPlaying: true })), 0);
+          setGameOptions(prev => ({ ...prev, difficulty: d, isPaused: false }));
+          restartPlaying(setGameState);
         },
         isPaused: gameOptions.isPaused || false,
         onPauseToggle: () => updateGameOption('isPaused', !gameOptions.isPaused),
         level: gameState.level || 1,
         linesCleared: gameState.linesCleared || 0
+      });
+    }
+
+    if (isArcadeGame(gameId)) {
+      Object.assign(controlProps, {
+        difficulty: gameOptions.difficulty || 'Easy',
+        onDifficultyChange: (d) => {
+          setGameOptions(prev => ({ ...prev, difficulty: d, isPaused: false }));
+          restartPlaying(setGameState);
+        },
+        isPaused: gameOptions.isPaused || false,
+        onPauseToggle: () => updateGameOption('isPaused', !gameOptions.isPaused)
       });
     }
 
@@ -336,6 +372,27 @@ const GamePage = () => {
       );
     }
 
+    if (gameId === 'pong-3d') {
+      const you = gameState.score;
+      const computer = gameState.opponentScore ?? 0;
+      return (
+        <>
+          <div className="stat">
+            <span className="stat-label">You</span>
+            <span className="stat-value" style={{ color: gameState.gameWon ? '#10b981' : 'inherit' }}>{you}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">Computer</span>
+            <span className="stat-value" style={{ color: gameState.gameLost ? '#ef4444' : 'inherit' }}>{computer}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">First to</span>
+            <span className="stat-value">{POINTS_TO_WIN}</span>
+          </div>
+        </>
+      );
+    }
+
     if (gameId === '2048-3d') {
       return (
         <>
@@ -407,7 +464,7 @@ const GamePage = () => {
             <Canvas
               camera={{ position: cameraConfig.position, fov: cameraConfig.fov }}
               frameloop={
-                gameId === 'tetris-3d' ||
+                REALTIME_GAME_IDS.has(gameId) ||
                 (gameId === '2048-3d' && gameState.winPendingChoice)
                   ? 'always'
                   : 'demand'
@@ -428,7 +485,7 @@ const GamePage = () => {
                 mobileActionRef={mobileActionRef}
                 onWordSelected={gameId === 'crossword-3d' ? handleWordSelected : undefined}
               />
-              <OrbitControls enableZoom={cameraConfig.enableZoom} />
+              <OrbitControls enableZoom={cameraConfig.enableZoom} keys={ORBIT_KEYS} />
             </Canvas>
             <MobileTouchControls
               gameId={gameId}
