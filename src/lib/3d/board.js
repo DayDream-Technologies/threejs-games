@@ -151,7 +151,6 @@ export const isOnOuterLayer = (x, y, z, size) => {
  * @returns {number}
  */
 export const getLayer = (x, y, z, size) => {
-  const center = Math.floor(size / 2);
   const distFromEdge = Math.min(
     x, size - 1 - x,
     y, size - 1 - y,
